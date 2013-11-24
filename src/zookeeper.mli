@@ -1,56 +1,90 @@
-(* ZkOCaml: OCaml Binding For Apache ZooKeeper
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *)
-
+type zhandle
+type client_id
+type acl
+type strings
+type stat
 type error =
-  ZOK (*!< Everything is OK *)
-
-  (** System and server-side errors. *)
-  (* This is never thrown by the server, it shouldn't be used other than *)
-  (* to indicate a range. Specifically error codes greater than this *)
-  (* value, but lesser than {ZAPIERROR}, are system errors.*)
+    ZOK
   | ZSYSTEMERROR
-  | ZRUNTIMEINCONSISTENCY (*!< A runtime inconsistency was found *)
-  | ZDATAINCONSISTENCY    (*!< A data inconsistency was found *)
-  | ZCONNECTIONLOSS       (*!< Connection to the server has been lost *)
-  | ZMARSHALLINGERROR     (*!< Error while marshalling or unmarshalling data *)
-  | ZUNIMPLEMENTED        (*!< Operation is unimplemented *)
-  | ZOPERATIONTIMEOUT     (*!< Operation timeout *)
-  | ZBADARGUMENTS         (*!< Invalid arguments *)
-  | ZINVALIDSTATE         (*!< Invliad zhandle state *)
-
-  (** API errors. *)
-  (* This is never thrown by the server, it shouldn't be used other than *)
-  (* to indicate a range. Specifically error codes greater than this *)
-  (* value are API errors (while values less than this indicate a *)
-  (* ZSYSTEMERROR. *)
+  | ZRUNTIMEINCONSISTENCY
+  | ZDATAINCONSISTENCY
+  | ZCONNECTIONLOSS
+  | ZMARSHALLINGERROR
+  | ZUNIMPLEMENTED
+  | ZOPERATIONTIMEOUT
+  | ZBADARGUMENTS
+  | ZINVALIDSTATE
   | ZAPIERROR
-  | ZNONODE                (*!< Node does not exist *)
-  | ZNOAUTH                (*!< Not authenticated *)
-  | ZBADVERSION            (*!< Version conflict *)
-  | ZNOCHILDRENFOREPHEMERALS (*!< Ephemeral nodes may not have children *)
-  | ZNODEEXISTS            (*!< The node already exists *)
-  | ZNOTEMPTY              (*!< The node has children *)
-  | ZSESSIONEXPIRED        (*!< The session has been expired by the server *)
-  | ZINVALIDCALLBACK       (*!< Invalid callback specified *)
-  | ZINVALIDACL            (*!< Invalid ACL specified *)
-  | ZAUTHFAILED            (*!< Client authentication failed *)
-  | ZCLOSING               (*!< ZooKeeper is closing *)
-  | ZNOTHING               (*!< (not error) no server responses to process *)
-  | ZSESSIONMOVED          (*!<session moved to another server, so operation is ignored *)
-
+  | ZNONODE
+  | ZNOAUTH
+  | ZBADVERSION
+  | ZNOCHILDRENFOREPHEMERALS
+  | ZNODEEXISTS
+  | ZNOTEMPTY
+  | ZSESSIONEXPIRED
+  | ZINVALIDCALLBACK
+  | ZINVALIDACL
+  | ZAUTHFAILED
+  | ZCLOSING
+  | ZNOTHING
+  | ZSESSIONMOVED
+type event =
+    ZOO_CREATED_EVENT
+  | ZOO_DELETED_EVENT
+  | ZOO_CHANGED_EVENT
+  | ZOO_CHILD_EVENT
+  | ZOO_SESSION_EVENT
+  | ZOO_NOTWATCHING_EVENT
+type perm =
+    ZOO_PERM_READ
+  | ZOO_PERM_WRITE
+  | ZOO_PERM_CREATE
+  | ZOO_PERM_DELETE
+  | ZOO_PERM_ADMIN
+  | ZOO_PERM_ALL
+type state =
+    ZOO_EXPIRED_SESSION_STATE
+  | ZOO_AUTH_FAILED_STATE
+  | ZOO_CONNECTING_STATE
+  | ZOO_ASSOCIATING_STATE
+  | ZOO_CONNECTED_STATE
+type create_flag = ZOO_EPHEMERAL | ZOO_SEQUENCE
+type log_level =
+    ZOO_LOG_LEVEL_ERROR
+  | ZOO_LOG_LEVEL_WARN
+  | ZOO_LOG_LEVEL_INFO
+  | ZOO_LOG_LEVEL_DEBUG
+type watcher_callback = zhandle -> event -> state -> string -> string -> unit
+type void_completion_callback = error -> string -> unit
+type stat_completion_callback = error -> stat -> string -> unit
+type data_completion_callback = error -> string -> stat -> string -> unit
+type strings_completion_callback = error -> strings -> string -> unit
+type strings_stat_completion_callback =
+    error -> strings -> stat -> string -> unit
+type string_completion_callback = error -> string -> string -> unit
+external init :
+  host:string ->
+  watcher_fn:watcher_callback ->
+  recv_timeout:int ->
+  clientid:client_id -> context:string -> flags:int -> zhandle
+  = "zkocaml_init_bytecode" "zkocaml_init_native"
+external close : zh:zhandle -> error = "zkocaml_close"
+external client_id : zh:zhandle -> client_id = "zkocaml_client_id"
+external recv_timeout : zh:zhandle -> int = "zkocaml_recv_timeout"
+external get_context : zh:zhandle -> string = "zkocaml_get_context"
+external set_context : zh:zhandle -> context:string -> unit
+  = "zkocaml_set_context"
+external set_watcher :
+  zh:zhandle -> watcher_fn:watcher_callback -> watcher_callback
+  = "zkocaml_set_watcher"
+external get_connected_host : zh:zhandle -> string
+  = "zkocaml_get_connected_host"
+external zstate : zh:zhandle -> state = "zkocaml_state"
+external acreate :
+  zh:zhandle ->
+  path:string ->
+  value:string ->
+  acls:acl ->
+  flags:create_flag ->
+  completion:string_completion_callback -> data:string -> error
+  = "zkocaml_acreate_bytecode" "zkocaml_acreate_native"
