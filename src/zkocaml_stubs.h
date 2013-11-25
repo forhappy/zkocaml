@@ -20,4 +20,16 @@
 #ifndef _ZKOCAML_H_
 #define _ZKOCAML_H_
 
+#include <zookeeper/zookeeper.h>
+
+typedef struct zkocaml_handle_s_ {
+  zhandle_t *handle;
+} zkocaml_handle_t;
+
+typedef struct zkocaml_watcher_context_s_ {
+  char *watcher_ctx;
+  size_t watcher_ctx_len;
+  value watcher_callback;
+} zkocaml_watcher_context_t;
+
 #endif  // _ZKOCAML_H_

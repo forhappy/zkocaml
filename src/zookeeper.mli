@@ -2,6 +2,7 @@ type zhandle
 type client_id = { client_id : int64; passwd : string; }
 type id = { scheme : string; id : string; }
 type acl = { perms : int32; id : id; }
+type acls = acl list
 type strings = string list
 type stat = {
   czxid : int64;

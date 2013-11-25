@@ -369,22 +369,25 @@ type strings_stat_completion_callback = error -> strings -> stat -> string -> un
  *)
 type string_completion_callback = error -> string -> string -> unit
 
+(*
+
 (** This ID represents anyone. *)
-let ZOO_ANYONE_ID_UNSAFE = {scheme = "world"; id = "anyone"}
+let zoo_anyone_id_unsafe = {scheme = "world"; id = "anyone"}
 
 (** This ID is only usable to set ACLs,
  * It will get substitued with the ID's the
  * client authenticated with. *)
-let ZOO_AUTH_IDS = {scheme = "auth"; id = ""}
+let zoo_auth_ids = {scheme = "auth"; id = ""}
 
-let OPEN_ACL_UNSAFE_ACL_ = {perms = 0x1f; id = ZOO_ANYONE_ID_UNSAFE}
-let READ_ACL_UNSAFE_ACL_ = {perms = 0x01; id = ZOO_ANYONE_ID_UNSAFE}
-let CREATOR_ALL_ACL_ACL_ = {perms = 0x1f; id = ZOO_AUTH_IDS}
+let open_acl_unsafe_acl_ = {perms = 0x1f; id = zoo_anyone_id_unsafe}
+let read_acl_unsafe_acl_ = {perms = 0x01; id = zoo_anyone_id_unsafe}
+let creator_all_acl_acl_ = {perms = 0x1f; id = zoo_auth_ids}
 
-let ZOO_OPEN_ACL_UNSAFE = [OPEN_ACL_UNSAFE_ACL_]
-let ZOO_READ_ACL_UNSAFE = [READ_ACL_UNSAFE_ACL_]
-let ZOO_CREATOR_ALL_ACL = [CREATOR_ALL_ACL_ACL_]
+let zoo_open_acl_unsafe = [open_acl_unsafe_acl_]
+let zoo_read_acl_unsafe = [read_acl_unsafe_acl_]
+let zoo_creator_all_acl = [creator_all_acl_acl_]
 
+*)
 
 external init : host:string -> watcher_fn:watcher_callback ->
     recv_timeout:int -> clientid:client_id -> context:string ->
