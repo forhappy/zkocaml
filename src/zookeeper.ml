@@ -36,13 +36,27 @@ type zhandle
  * It is received from the server when a session is established
  * and needs to be sent back as-is when reconnecting a session.
  **)
-type client_id
+type client_id = {client_id: int64; passwd: string}
 
-type acl
+type id = {scheme: string; id: string}
+type acl = {perms: int32; id: id}
+type acls = acl list
 
-type strings
+type strings = string list
 
-type stat
+type stat = {
+  czxid: int64;
+  mzxid: int64;
+  ctime: int64;
+  mtime: int64;
+  version: int32;
+  cversion: int32;
+  aversion: int32;
+  ephemeral_owner: int64;
+  data_length: int32;
+  num_children: int32;
+  pzxid: int32
+}
 
 type error =
   ZOK (*!< Everything is OK *)
@@ -354,6 +368,23 @@ type strings_stat_completion_callback = error -> strings -> stat -> string -> un
  * pointer.
  *)
 type string_completion_callback = error -> string -> string -> unit
+
+(** This ID represents anyone. *)
+let ZOO_ANYONE_ID_UNSAFE = {scheme = "world"; id = "anyone"}
+
+(** This ID is only usable to set ACLs,
+ * It will get substitued with the ID's the
+ * client authenticated with. *)
+let ZOO_AUTH_IDS = {scheme = "auth"; id = ""}
+
+let OPEN_ACL_UNSAFE_ACL_ = {perms = 0x1f; id = ZOO_ANYONE_ID_UNSAFE}
+let READ_ACL_UNSAFE_ACL_ = {perms = 0x01; id = ZOO_ANYONE_ID_UNSAFE}
+let CREATOR_ALL_ACL_ACL_ = {perms = 0x1f; id = ZOO_AUTH_IDS}
+
+let ZOO_OPEN_ACL_UNSAFE = [OPEN_ACL_UNSAFE_ACL_]
+let ZOO_READ_ACL_UNSAFE = [READ_ACL_UNSAFE_ACL_]
+let ZOO_CREATOR_ALL_ACL = [CREATOR_ALL_ACL_ACL_]
+
 
 external init : host:string -> watcher_fn:watcher_callback ->
     recv_timeout:int -> clientid:client_id -> context:string ->

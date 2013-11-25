@@ -30,6 +30,8 @@
 
 #include <zookeeper/zookeeper.h>
 
+#include "zkocaml_stubs.h"
+
 #define zhandle_struct_val(v) (*(zhandle_t **)Data_custom_val(v))
 
 static void
@@ -154,7 +156,7 @@ zkocaml_init_native(value host,
                     value context,
                     value flag)
 {
-  CAMLparam1(host);
+  CAMLparam5(host, watcher_fn, recv_timeout, clientid, context);
 }
 
 CAMLprim value

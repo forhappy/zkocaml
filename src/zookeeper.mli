@@ -1,8 +1,21 @@
 type zhandle
-type client_id
-type acl
-type strings
-type stat
+type client_id = { client_id : int64; passwd : string; }
+type id = { scheme : string; id : string; }
+type acl = { perms : int32; id : id; }
+type strings = string list
+type stat = {
+  czxid : int64;
+  mzxid : int64;
+  ctime : int64;
+  mtime : int64;
+  version : int32;
+  cversion : int32;
+  aversion : int32;
+  ephemeral_owner : int64;
+  data_length : int32;
+  num_children : int32;
+  pzxid : int32;
+}
 type error =
     ZOK
   | ZSYSTEMERROR
