@@ -58,6 +58,59 @@ static struct custom_operations zhandle_struct_ops = {
   custom_deserialize_default
 };
 
+static void
+watcher_dispatch(zhandle_t *zh,
+                 int type, int state,
+                 const char *path,
+                 void *watcher_ctx)
+{
+
+}
+
+static void
+void_completion_dispatch(int rc, const void *data)
+{}
+
+static void
+stat_completion_dispatch(int rc,
+                         const struct Stat *stat,
+                         const void *data)
+{}
+
+static void
+data_completion_dispatch(int rc,
+                         const char *value,
+                         int value_len,
+                         const struct Stat *stat,
+                         const void *data)
+{}
+
+static void
+strings_completion_dispatch(int rc,
+                            const struct String_vector *strings,
+                            const void *data)
+{}
+
+static void
+strings_stat_completion_dispatch(int rc,
+                                 const struct String_vector *strings,
+                                 const struct Stat *stat,
+                                 const void *data)
+{}
+
+static void
+string_completion_dispatch(int rc,
+                           const char *value,
+                           const void *data)
+{}
+
+static void
+acl_completion_dispatch(int rc,
+                        struct ACL_vector *acl,
+                        struct Stat *stat,
+                        const void *data)
+{}
+
 /**
  * Create a handle to used communicate with zookeeper.
  *
@@ -94,8 +147,12 @@ static struct custom_operations zhandle_struct_ops = {
  */
 
 CAMLprim value
-zkocaml_init_native(value host, value watcher_fn, value recv_timeout,
-                    value clientid, value context, value flag)
+zkocaml_init_native(value host,
+                    value watcher_fn,
+                    value recv_timeout,
+                    value clientid,
+                    value context,
+                    value flag)
 {
   CAMLparam1(host);
 }
@@ -246,8 +303,13 @@ zkocaml_state(value zh)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_acreate_native(value zh, value path, value val, value acl,
-                value flags, value completion, value data)
+zkocaml_acreate_native(value zh,
+                       value path,
+                       value val,
+                       value acl,
+                       value flags,
+                       value completion,
+                       value data)
 {
   CAMLparam1(zh);
 }
@@ -288,8 +350,11 @@ zkocaml_acreate_bytecode(value *argv, int argn)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_adelete(value zh, value path, value version,
-                value completion, value data)
+zkocaml_adelete(value zh,
+                value path,
+                value version,
+                value completion,
+                value data)
 {
   CAMLparam1(zh);
 }
@@ -321,8 +386,11 @@ zkocaml_adelete(value zh, value path, value version,
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_aexists(value zh, value path, value watch,
-                value completion, value data)
+zkocaml_aexists(value zh,
+                value path,
+                value watch,
+                value completion,
+                value data)
 {
   CAMLparam1(zh);
 }
@@ -363,8 +431,12 @@ zkocaml_aexists(value zh, value path, value watch,
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_awexists_native(value zh, value path, value watcher,
-                 value watcher_ctx, value completion, value data)
+zkocaml_awexists_native(value zh,
+                        value path,
+                        value watcher,
+                        value watcher_ctx,
+                        value completion,
+                        value data)
 {
   CAMLparam1(zh);
 }
@@ -402,7 +474,11 @@ zkocaml_awexists_bytecode(value *argv, int argn)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_aget(value zh, value path, value watch, value completion, value data)
+zkocaml_aget(value zh,
+             value path,
+             value watch,
+             value completion,
+             value data)
 {
   CAMLparam1(zh);
 }
@@ -440,8 +516,12 @@ zkocaml_aget(value zh, value path, value watch, value completion, value data)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_awget_native(value zh, value path, value watcher,
-                     value watcher_ctx, value completion, value data)
+zkocaml_awget_native(value zh,
+                     value path,
+                     value watcher,
+                     value watcher_ctx,
+                     value completion,
+                     value data)
 {
   CAMLparam1(zh);
 }
@@ -485,8 +565,12 @@ zkocaml_awget_bytecode(value *argv, int argn)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_aset_native(value zh, value path, value buffer,
-             value version, value completion, value data)
+zkocaml_aset_native(value zh,
+                    value path,
+                    value buffer,
+                    value version,
+                    value completion,
+                    value data)
 {
   CAMLparam1(zh);
 }
@@ -524,10 +608,13 @@ zkocaml_aset_bytecode(value *argv, int argn)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_aget_children(value zh, value path, value watch,
-                      value completion, value data)
+zkocaml_aget_children(value zh,
+                      value path,
+                      value watch,
+                      value completion,
+                      value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watch, completion, data);
 }
 
 /**
@@ -563,10 +650,14 @@ zkocaml_aget_children(value zh, value path, value watch,
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_awget_children_native(value zh, value path, value watcher,
-                       value watcher_ctx, value completion, value data)
+zkocaml_awget_children_native(value zh,
+                              value path,
+                              value watcher,
+                              value watcher_ctx,
+                              value completion,
+                              value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher, watcher_ctx, completion);
 }
 
 CAMLprim value
@@ -604,10 +695,13 @@ zkocaml_awget_children_bytecode(value *argv, int argn)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_aget_children2(value zh, value path, value watch,
-                       value completion, value data)
+zkocaml_aget_children2(value zh,
+                       value path,
+                       value watch,
+                       value completion,
+                       value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watch, completion, data);
 }
 
 /**
@@ -645,10 +739,14 @@ zkocaml_aget_children2(value zh, value path, value watch,
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_awget_children2_native(value zh, value path, value watcher,
-                               value watcher_ctx, value completion, value data)
+zkocaml_awget_children2_native(value zh,
+                               value path,
+                               value watcher,
+                               value watcher_ctx,
+                               value completion,
+                               value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher, watcher_ctx, completion);
 }
 
 CAMLprim value
@@ -683,7 +781,7 @@ zkocaml_awget_children2_bytecode(value *argv, int argn)
 CAMLprim value
 zkocaml_async(value zh, value path, value completion, value data)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, completion, data);
 }
 
 /**
@@ -711,7 +809,7 @@ zkocaml_async(value zh, value path, value completion, value data)
 CAMLprim value
 zkocaml_aget_acl(value zh, value path, value completion, value data)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, completion, data);
 }
 
 /**
@@ -741,10 +839,13 @@ zkocaml_aget_acl(value zh, value path, value completion, value data)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_aset_acl(value zh, value path, value buffer,
-                 value completion, value data)
+zkocaml_aset_acl(value zh,
+                 value path,
+                 value buffer,
+                 value completion,
+                 value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, buffer, completion, data);
 }
 
 /**
@@ -792,9 +893,13 @@ zkocaml_zerror(value rc)
  *   ZSYSTEMERROR - a system error occured
  */
 CAMLprim value
-zkocaml_add_auth(value zh, value scheme, value cert, value completion, value data)
+zkocaml_add_auth(value zh,
+                 value scheme,
+                 value cert,
+                 value completion,
+                 value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, scheme, cert, completion, data);
 }
 
 /**
@@ -893,10 +998,15 @@ zkocaml_deterministic_conn_order(value yes_or_no)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_create_native(value zh, value path, value val, value acl,
-                      value flags, value path_buffer, value path_buffer_len)
+zkocaml_create_native(value zh,
+                      value path,
+                      value val,
+                      value acl,
+                      value flags,
+                      value path_buffer,
+                      value path_buffer_len)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, val, acl, flags);
 }
 
 CAMLprim value
@@ -931,7 +1041,7 @@ zkocaml_create_bytecode(value *argv, int argn)
 CAMLprim value
 zkocaml_delete(value zh, value path, value version)
 {
-  CAMLparam1(zh);
+  CAMLparam3(zh, path, version);
 }
 
 /**
@@ -959,7 +1069,7 @@ zkocaml_delete(value zh, value path, value version)
 CAMLprim value
 zkocaml_exists(value zh, value path, value watch, value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, watch, stat);
 }
 
 /**
@@ -992,9 +1102,13 @@ zkocaml_exists(value zh, value path, value watch, value stat)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_wexists(value zh, value path, value watcher, value watcher_ctx, value stat)
+zkocaml_wexists(value zh,
+                value path,
+                value watcher,
+                value watcher_ctx,
+                value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher, watcher_ctx, stat);
 }
 
 /**
@@ -1021,9 +1135,13 @@ zkocaml_wexists(value zh, value path, value watcher, value watcher_ctx, value st
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_get(value zh, value path, value watch, value buffer, value stat)
+zkocaml_get(value zh,
+            value path,
+            value watch,
+            value buffer,
+            value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watch, buffer, stat);
 }
 
 /**
@@ -1057,10 +1175,14 @@ zkocaml_get(value zh, value path, value watch, value buffer, value stat)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_wget_native(value zh, value path, value watcher,
-             value watcher_ctx, value buffer, value stat)
+zkocaml_wget_native(value zh,
+                    value path,
+                    value watcher,
+                    value watcher_ctx,
+                    value buffer,
+                    value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher, watcher_ctx, buffer);
 }
 
 CAMLprim value
@@ -1097,7 +1219,7 @@ zkocaml_wget_bytecode(value *argv, int argn)
 CAMLprim value
 zkocaml_set(value zh, value path, value buffer, value version)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, buffer, version);
 }
 
 /**
@@ -1130,7 +1252,7 @@ zkocaml_set(value zh, value path, value buffer, value version)
 CAMLprim value
 zkocaml_set2(value zh, value path, value buffer, value version, value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, buffer, version, stat);
 }
 
 /**
@@ -1157,7 +1279,7 @@ zkocaml_set2(value zh, value path, value buffer, value version, value stat)
 CAMLprim value
 zkocaml_get_children(value zh, value path, value watch, value strings)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, watch, strings);
 }
 
 /**
@@ -1189,10 +1311,13 @@ zkocaml_get_children(value zh, value path, value watch, value strings)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_wget_children(value zh, value path, value watcher,
-                      value watcher_ctx, value strings)
+zkocaml_wget_children(value zh,
+                      value path,
+                      value watcher,
+                      value watcher_ctx,
+                      value strings)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher, watcher_ctx, strings);
 }
 
 /**
@@ -1221,9 +1346,13 @@ zkocaml_wget_children(value zh, value path, value watcher,
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_get_children2(value zh, value path, value watch, value strings, value stat)
+zkocaml_get_children2(value zh,
+                      value path,
+                      value watch,
+                      value strings,
+                      value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watch, strings, stat);
 }
 
 /**
@@ -1259,10 +1388,14 @@ zkocaml_get_children2(value zh, value path, value watch, value strings, value st
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_wget_children2_native(value zh, value path, value watcher,
-                       value watcher_ctx, value strings, value stat)
+zkocaml_wget_children2_native(value zh,
+                              value path,
+                              value watcher,
+                              value watcher_ctx,
+                              value strings,
+                              value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher, watcher_ctx, strings);
 }
 
 CAMLprim value
@@ -1295,7 +1428,7 @@ zkocaml_wget_children2_bytecode(value *argv, int argn)
 CAMLprim value
 zkocaml_get_acl(value zh, value path, value acl, value stat)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, acl, stat);
 }
 
 /**
@@ -1323,6 +1456,6 @@ zkocaml_get_acl(value zh, value path, value acl, value stat)
 CAMLprim value
 zkocaml_set_acl(value zh, value path, value version, value acl)
 {
-  CAMLparam1(zh);
+  CAMLparam4(zh, path, version, acl);
 }
 
