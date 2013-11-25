@@ -107,50 +107,100 @@ zkocaml_init_bytecode(value *argv, int argn)
                              argv[3], argv[4], argv[5]);
 }
 
+/**
+ * Close the zookeeper handle and free up any resources.
+ *
+ * After this call, the client session will no longer be valid. The function
+ * will flush any outstanding send requests before return. As a result it may
+ * block.
+ *
+ * This method should only be called only once on a zookeeper handle. Calling
+ * twice will cause undefined (and probably undesirable behavior). Calling any other
+ * zookeeper method after calling close is undefined behaviour and should be avoided.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @return a result code. Regardless of the error code returned, the zhandle
+ * will be destroyed and all resources freed.
+ *   ZOK - success
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ *   ZOPERATIONTIMEOUT - failed to flush the buffers within the specified timeout.
+ *   ZCONNECTIONLOSS - a network error occured while attempting to send request to server
+ *   ZSYSTEMERROR -- a system (OS) error occured; it's worth checking errno to get details
+ */
 CAMLprim value
 zkocaml_close(value zh)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Return the client session id, only valid if the connections
+ * is currently connected (ie. last watcher state is ZOO_CONNECTED_STATE)
+ */
 CAMLprim value
 zkocaml_client_id(value zh)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Return the timeout for this session, only valid if the connections
+ * is currently connected (ie. last watcher state is ZOO_CONNECTED_STATE). This
+ * value may change after a server re-connect.
+ */
 CAMLprim value
 zkocaml_recv_timeout(value zh)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Return the context for this handle.
+ */
 CAMLprim value
 zkocaml_get_context(value zh)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Set the context for this handle.
+ */
 CAMLprim value
 zkocaml_set_context(value zh, value context)
 {
   CAMLparam1(zh);
 }
 
-
+/**
+ * Set a watcher function
+ * @return previous watcher function
+ */
 CAMLprim value
 zkocaml_set_watcher(value zh, value watcher_fn)
 {
   CAMLparam1(zh);
 }
 
-
+/**
+ * Returns the socket address for the current connection
+ *
+ * @return socket address of the connected host or NULL on failure, only valid if the
+ * connection is current connected
+ */
 CAMLprim value
 zkocaml_get_connected_host(value zh)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Get the state of the zookeeper connection.
+ *
+ * The return value will be one of the state consts.
+ */
 CAMLprim value
 zkocaml_state(value zh)
 {
