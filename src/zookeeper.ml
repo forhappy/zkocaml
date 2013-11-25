@@ -337,6 +337,7 @@ type strings_stat_completion_callback = error -> strings -> stat -> string -> un
  *
  * This method will be invoked at the end of a asynchronous call and also as
  * a result of connection loss or timeout.
+ *
  * @rc the error code of the call. Connection loss/timeout triggers
  * the completion with one of the following error codes:
  *   ZCONNECTIONLOSS -- lost connection to the server
