@@ -526,153 +526,752 @@ zkocaml_awget_children_bytecode(value *argv, int argn)
                                        argv[3], argv[4], argv[5]);
 }
 
+/**
+ * Lists the children of a node, and get the parent stat.
+ *
+ * This function is new in version 3.3.0
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watch if nonzero, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @completion the routine to invoke when the request completes. The completion
+ * will be triggered with one of the following codes passed in as the rc argument:
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *
+ * @data the data that will be passed to the completion routine when
+ * the function completes.
+ *
+ * @return ZOK on success or one of the following errcodes on failure:
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
 CAMLprim value
-zkocaml_aget_children2(value zh)
+zkocaml_aget_children2(value zh, value path, value watch,
+                       value completion, value data)
 {
   CAMLparam1(zh);
 }
 
-
+/**
+ * Lists the children of a node, and get the parent stat.
+ *
+ * This function is similar to zoo_aget_children2 except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ *
+ * This function is new in version 3.3.0
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watcher if non-null, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @watcher_ctx user specific data, will be passed to the watcher callback.
+ * Unlike the global context set by zookeeper_init, this watcher context
+ * is associated with the given instance of the watcher only.
+ *
+ * @completion the routine to invoke when the request completes. The completion
+ * will be triggered with one of the following codes passed in as the rc argument:
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *
+ * @data the data that will be passed to the completion routine when
+ * the function completes.
+ *
+ * @return ZOK on success or one of the following errcodes on failure:
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
 CAMLprim value
-zkocaml_awget_children2(value zh)
+zkocaml_awget_children2_native(value zh, value path, value watcher,
+                               value watcher_ctx, value completion, value data)
 {
   CAMLparam1(zh);
 }
 
 CAMLprim value
-zkocaml_async(value zh)
+zkocaml_awget_children2_bytecode(value *argv, int argn)
 {
-  CAMLparam1(zh);
+  return zkocaml_awget_children2_native(argv[0], argv[1], argv[2],
+                                        argv[3], argv[4], argv[5]);
 }
 
+/**
+ * Flush leader channel.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @completion the routine to invoke when the request completes. The completion
+ * will be triggered with one of the following codes passed in as the rc argument:
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *
+ * @data the data that will be passed to the completion routine when
+ * the function completes.
+ *
+ * @return ZOK on success or one of the following errcodes on failure:
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
 CAMLprim value
-zkocaml_aget_acl(value zh)
+zkocaml_async(value zh, value path, value completion, value data)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Gets the acl associated with a node.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @completion the routine to invoke when the request completes. The completion
+ * will be triggered with one of the following codes passed in as the rc argument:
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *
+ * @data the data that will be passed to the completion routine when
+ * the function completes.
+ *
+ * @return ZOK on success or one of the following errcodes on failure:
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
 CAMLprim value
-zkocaml_aset_acl(value zh)
+zkocaml_aget_acl(value zh, value path, value completion, value data)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Sets the acl associated with a node.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @buffer the buffer holding the acls to be written to the node.
+ *
+ * @completion the routine to invoke when the request completes. The completion
+ * will be triggered with one of the following codes passed in as the rc argument:
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZINVALIDACL invalid ACL specified
+ *   ZBADVERSION expected version does not match actual version.
+ *
+ * @data the data that will be passed to the completion routine when
+ * the function completes.
+ *
+ * @return ZOK on success or one of the following errcodes on failure:
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
 CAMLprim value
-zkocaml_zerror(value zh)
+zkocaml_aset_acl(value zh, value path, value buffer,
+                 value completion, value data)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Return an error string.
+ *
+ * @rc return code.
+ * @return string corresponding to the return code
+ */
 CAMLprim value
-zkocaml_add_auth(value zh)
+zkocaml_zerror(value rc)
+{
+  CAMLparam1(rc);
+}
+
+/**
+ * Specify application credentials.
+ *
+ * The application calls this function to specify its credentials for purposes
+ * of authentication. The server will use the security provider specified by
+ * the scheme parameter to authenticate the client connection. If the
+ * authentication request has failed:
+ * - the server connection is dropped
+ * - the watcher is called with the ZOO_AUTH_FAILED_STATE value as the state
+ * parameter.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @scheme the id of authentication scheme. Natively supported:
+ * "digest" password-based authentication
+ *
+ * @cert application credentials. The actual value depends on the scheme.
+ *
+ * @completion the routine to invoke when the request completes. One of
+ * the following result codes may be passed into the completion callback:
+ *   ZOK operation completed successfully
+ *   ZAUTHFAILED authentication failed
+ *
+ * @data the data that will be passed to the completion routine when the
+ * function completes.
+ *
+ * @return ZOK on success or one of the following errcodes on failure:
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ *   ZSYSTEMERROR - a system error occured
+ */
+CAMLprim value
+zkocaml_add_auth(value zh, value scheme, value cert, value completion, value data)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Checks if the current zookeeper connection state can't be recovered.
+ *
+ *  The application must close the zhandle and try to reconnect.
+ *
+ * @zh the zookeeper handle (see zookeeper_init)
+ * @return ZINVALIDSTATE if connection is unrecoverable
+ */
 CAMLprim value
 zkocaml_is_unrecoverable(value zh)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Sets the debugging level for the library
+ */
 CAMLprim value
-zkocaml_set_debug_level(value zh)
+zkocaml_set_debug_level(value log_level)
+{
+  CAMLparam1(log_level);
+}
+
+/**
+ * Sets the stream to be used by the library for logging
+ *
+ * The zookeeper library uses stderr as its default log stream. Application
+ * must make sure the stream is writable. Passing in NULL resets the stream
+ * to its default value (stderr).
+ */
+CAMLprim value
+zkocaml_set_log_stream(value log_stream)
+{
+  CAMLparam1(log_stream);
+}
+
+/**
+ * Enable/disable quorum endpoint order randomization
+ *
+ * Note: typically this method should NOT be used outside of testing.
+ *
+ * If passed a non-zero value, will make the client connect to quorum peers
+ * in the order as specified in the zookeeper_init() call.
+ * A zero value causes zookeeper_init() to permute the peer endpoints
+ * which is good for more even client connection distribution among the
+ * quorum peers.
+ */
+CAMLprim value
+zkocaml_deterministic_conn_order(value yes_or_no)
+{
+  CAMLparam1(yes_or_no);
+}
+
+/**
+ * Create a node synchronously.
+ *
+ * This method will create a node in ZooKeeper. A node can only be created if
+ * it does not already exists. The Create Flags affect the creation of nodes.
+ * If ZOO_EPHEMERAL flag is set, the node will automatically get removed if the
+ * client session goes away. If the ZOO_SEQUENCE flag is set, a unique
+ * monotonically increasing sequence number is appended to the path name.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init.
+ *
+ * @path The name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @val The data to be stored in the node.
+ *
+ * @acl The initial ACL of the node. The ACL must not be null or empty.
+ *
+ * @flags this parameter can be set to 0 for normal create or an OR
+ * of the Create Flags
+ *
+ * @path_buffer Buffer which will be filled with the path of the
+ * new node (this might be different than the supplied path
+ * because of the ZOO_SEQUENCE flag).  The path string will always be
+ * null-terminated. This parameter may be NULL if path_buffer_len = 0.
+ *
+ * @path_buffer_len Size of path buffer; if the path of the new
+ *    node (including space for the null terminator) exceeds the buffer size,
+ *    the path string will be truncated to fit.  The actual path of the
+ *    new node in the server will not be affected by the truncation.
+ *    The path string will always be null-terminated.
+ *
+ * @return one of the following codes are returned:
+ *   ZOK operation completed successfully
+ *   ZNONODE the parent node does not exist.
+ *   ZNODEEXISTS the node already exists
+ *   ZNOAUTH the client does not have permission.
+ *   ZNOCHILDRENFOREPHEMERALS cannot create children of ephemeral nodes.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_create_native(value zh, value path, value val, value acl,
+                      value flags, value path_buffer, value path_buffer_len)
 {
   CAMLparam1(zh);
 }
 
 CAMLprim value
-zkocaml_set_log_stream(value zh)
+zkocaml_create_bytecode(value *argv, int argn)
+{
+  return zkocaml_create_native(argv[0], argv[1], argv[2],
+                               argv[3], argv[4], argv[5], argv[6]);
+}
+
+/**
+ * Delete a node in zookeeper synchronously.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @version the expected version of the node. The function will fail if the
+ * actual version of the node does not match the expected version.
+ * If -1 is used the version check will not take place.
+ *
+ * @return one of the following values is returned.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADVERSION expected version does not match actual version.
+ *   ZNOTEMPTY children are present; node cannot be deleted.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_delete(value zh, value path, value version)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Checks the existence of a node in zookeeper synchronously.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watch if nonzero, a watch will be set at the server to notify the
+ * client if the node changes. The watch will be set even if the node does not
+ * exist. This allows clients to watch for nodes to appear.
+ *
+ * @stat the returned stat value of the node.
+ *
+ * @return return code of the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_exists(value zh, value path, value watch, value stat)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Checks the existence of a node in zookeeper synchronously.
+ *
+ * This function is similar to zoo_exists except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watcher if non-null a watch will set on the specified znode on the server.
+ * The watch will be set even if the node does not exist. This allows clients
+ * to watch for nodes to appear.
+ *
+ * @watcher_ctx user specific data, will be passed to the watcher callback.
+ * Unlike the global context set by zookeeper_init, this watcher context
+ * is associated with the given instance of the watcher only.
+ *
+ * @stat the return stat value of the node.
+ *
+ * @return return code of the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_wexists(value zh, value path, value watcher, value watcher_ctx, value stat)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Gets the data associated with a node synchronously.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watch if nonzero, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @buffer the buffer holding the node data returned by the server
+ *
+ * @stat if not NULL, will hold the value of stat for the path on return.
+ *
+ * @return return value of the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either in ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_get(value zh, value path, value watch, value buffer, value stat)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Gets the data associated with a node synchronously.
+ *
+ * This function is similar to zoo_get except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watcher if non-null, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @watcher_ctx user specific data, will be passed to the watcher callback.
+ * Unlike the global context set by \ref zookeeper_init, this watcher context
+ * is associated with the given instance of the watcher only.
+ *
+ * @buffer the buffer holding the node data returned by the server
+ *
+ * @stat if not NULL, will hold the value of stat for the path on return.
+ *
+ * @return return value of the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either in ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_wget_native(value zh, value path, value watcher,
+             value watcher_ctx, value buffer, value stat)
 {
   CAMLparam1(zh);
 }
 
 CAMLprim value
-zkocaml_deterministic_conn_order(value zh)
+zkocaml_wget_bytecode(value *argv, int argn)
+{
+  return zkocaml_wget_native(argv[0], argv[1], argv[2],
+                             argv[3], argv[4], argv[5]);
+}
+
+/**
+ * Sets the data associated with a node. See zoo_set2 function if
+ * you require access to the stat information associated with the znode.
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @buffer the buffer holding data to be written to the node.
+ *
+ * @version the expected version of the node. The function will fail if
+ * the actual version of the node does not match the expected version. If -1 is
+ * used the version check will not take place.
+ *
+ * @return the return code for the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADVERSION expected version does not match actual version.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_set(value zh, value path, value buffer, value version)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Sets the data associated with a node. This function is the same
+ * as zoo_set except that it also provides access to stat information
+ * associated with the znode.
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @buffer the buffer holding data to be written to the node.
+ *
+ * @version the expected version of the node. The function will fail if
+ * the actual version of the node does not match the expected version. If -1 is
+ * used the version check will not take place.
+ *
+ * @stat if not NULL, will hold the value of stat for the path on return.
+ *
+ * @return the return code for the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADVERSION expected version does not match actual version.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_set2(value zh, value path, value buffer, value version, value stat)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Lists the children of a node synchronously.
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watch if nonzero, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @strings return value of children paths.
+ *
+ * @return the return code of the function.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_get_children(value zh, value path, value watch, value strings)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Lists the children of a node synchronously.
+ *
+ * This function is similar to zoo_get_children except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ *
+ * @zh the zookeeper handle obtained by a call to zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watcher if non-null, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @watcher_ctx user specific data, will be passed to the watcher callback.
+ * Unlike the global context set by \ref zookeeper_init, this watcher context
+ * is associated with the given instance of the watcher only.
+ *
+ * @strings return value of children paths.
+ *
+ * @return the return code of the function.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_wget_children(value zh, value path, value watcher,
+                      value watcher_ctx, value strings)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Lists the children of a node and get its stat synchronously.
+ *
+ * This function is new in version 3.3.0
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watch if nonzero, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @strings return value of children paths.
+ *
+ * @stat return value of node stat.
+ *
+ * @return the return code of the function.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_get_children2(value zh, value path, value watch, value strings, value stat)
+{
+  CAMLparam1(zh);
+}
+
+/**
+ * Lists the children of a node and get its stat synchronously.
+ *
+ * This function is similar to \ref zoo_get_children except it allows one specify
+ * a watcher object rather than a boolean watch flag.
+ *
+ * This function is new in version 3.3.0
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @watcher if non-null, a watch will be set at the server to notify
+ * the client if the node changes.
+ *
+ * @watcher_ctx user specific data, will be passed to the watcher callback.
+ * Unlike the global context set by \ref zookeeper_init, this watcher context
+ * is associated with the given instance of the watcher only.
+ *
+ * @strings return value of children paths.
+ *
+ * @stat return value of node stat.
+ *
+ * @return the return code of the function.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_wget_children2_native(value zh, value path, value watcher,
+                       value watcher_ctx, value strings, value stat)
 {
   CAMLparam1(zh);
 }
 
 CAMLprim value
-zkocaml_create(value zh)
+zkocaml_wget_children2_bytecode(value *argv, int argn)
+{
+  return zkocaml_wget_children2_native(argv[0], argv[1], argv[2],
+                                       argv[3], argv[4], argv[5]);
+}
+
+/**
+ * Gets the acl associated with a node synchronously.
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @acl the return value of acls on the path.
+ *
+ * @stat returns the stat of the path specified.
+ *
+ * @return the return code for the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
+CAMLprim value
+zkocaml_get_acl(value zh, value path, value acl, value stat)
 {
   CAMLparam1(zh);
 }
 
+/**
+ * Sets the acl associated with a node synchronously.
+ *
+ * @zh the zookeeper handle obtained by a call to \ref zookeeper_init
+ *
+ * @path the name of the node. Expressed as a file name with slashes
+ * separating ancestors of the node.
+ *
+ * @version the expected version of the path.
+ *
+ * @acl the acl to be set on the path.
+ *
+ * @return the return code for the function call.
+ *   ZOK operation completed successfully
+ *   ZNONODE the node does not exist.
+ *   ZNOAUTH the client does not have permission.
+ *   ZINVALIDACL invalid ACL specified
+ *   ZBADVERSION expected version does not match actual version.
+ *   ZBADARGUMENTS - invalid input parameters
+ *   ZINVALIDSTATE - zhandle state is either ZOO_SESSION_EXPIRED_STATE or ZOO_AUTH_FAILED_STATE
+ *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
+ */
 CAMLprim value
-zkocaml_delete(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_exists(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_wexists(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_get(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_wget(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_set(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_set2(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_get_children(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_wget_children(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_get_children2(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_wget_children2(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_get_acl(value zh)
-{
-  CAMLparam1(zh);
-}
-
-CAMLprim value
-zkocaml_set_acl(value zh)
+zkocaml_set_acl(value zh, value path, value version, value acl)
 {
   CAMLparam1(zh);
 }
