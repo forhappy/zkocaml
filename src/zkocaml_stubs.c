@@ -420,6 +420,38 @@ zkocaml_enum_create_flag_c2ml(int create_flag)
   return Val_int(index);
 }
 
+static clientid_t *
+zkocaml_parse_clientid(value v)
+{
+  CAMLparam1(v);
+  /**
+   * client id structure.
+   *
+   * This structure holds the id and password for the session.
+   * This structure should be treated as opaque. It is received
+   * from the server when a session is established and needs to be
+   * sent back as-is when reconnecting a session.
+   *
+   * typedef struct {
+   *   int64_t client_id;
+   *   char passwd[16];
+   * } clientid_t;
+   *
+   * in OCaml, the client_id type is declared as follows:
+   *
+   * type client_id = {client_id: int64; passwd: string}
+   *
+   */
+  clientid_t *cid = (clientid_t *) malloc(sizeof(clientid_t));
+  cid->client_id = Long_val(Field(v, 0));
+  const char *passwd = String_val(Field(v, 1));
+  size_t passwd_len = strlen(passwd);
+  memset(cid->passwd, 0, 16);
+  memcpy(cid->passwd, passwd, (passwd_len < 15) ? passwd_len : 15);
+
+  return cid;
+}
+
 static void
 watcher_dispatch(zhandle_t *zh,
                  int type,
@@ -436,9 +468,7 @@ watcher_dispatch(zhandle_t *zh,
   value watcher_callback = ctx->watcher_callback;
 
   local_zh = zkocaml_copy_zhandle(zh);
-  // local_type = Val_int(type);
   local_type = zkocaml_enum_event_c2ml(type);
-  // local_state = Val_int(state);
   local_state = zkocaml_enum_state_c2ml(state);
   local_path = caml_copy_string(path);
   local_watcher_ctx = caml_copy_string(ctx->watcher_ctx);

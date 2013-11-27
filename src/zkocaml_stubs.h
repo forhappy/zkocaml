@@ -38,11 +38,17 @@ typedef struct zkocaml_handle_s_ {
   zhandle_t *handle;
 } zkocaml_handle_t;
 
+/**
+ * The zkocaml_watcher_context_t wraps a zookeeper watcher context.
+ */
 typedef struct zkocaml_watcher_context_s_ {
   void *watcher_ctx;
   value watcher_callback;
 } zkocaml_watcher_context_t;
 
+/**
+ * The ZOO_EPHEMERAL_AUX wraps zookeeper event type.
+ */
 typedef enum ZOO_EVENT_AUX {
   ZOO_CREATED_EVENT_AUX,
   ZOO_DELETED_EVENT_AUX,
@@ -52,6 +58,9 @@ typedef enum ZOO_EVENT_AUX {
   ZOO_NOTWATCHING_EVENT_AUX
 } ZOO_EVENT_AUX;
 
+/**
+ * The ZOO_STATE_AUX wraps zookeeper connection state.
+ */
 typedef enum ZOO_STATE_AUX {
   ZOO_EXPIRED_SESSION_STATE_AUX,
   ZOO_AUTH_FAILED_STATE_AUX,
@@ -60,6 +69,9 @@ typedef enum ZOO_STATE_AUX {
   ZOO_CONNECTED_STATE_AUX
 } ZOO_STATE_AUX ;
 
+/**
+ * The ZOO_PERM_AUX wraps zookeeper ACL constants.
+ */
 typedef enum ZOO_PERM_AUX {
   ZOO_PERM_READ_AUX,
   ZOO_PERM_WRITE_AUX,
@@ -69,10 +81,12 @@ typedef enum ZOO_PERM_AUX {
   ZOO_PERM_ALL_AUX
 } ZOO_PERM_AUX;
 
+/**
+ * The ZOO_CREATE_FLAG_AUX wraps zookeeper the creation flag of a node.
+ */
 typedef enum ZOO_CREATE_FLAG_AUX {
   ZOO_EPHEMERAL_AUX,
   ZOO_SEQUENCE_AUX
 } ZOO_CREATE_FLAG_AUX;
-
 
 #endif  // _ZKOCAML_H_
