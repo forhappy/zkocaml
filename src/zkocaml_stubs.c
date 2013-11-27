@@ -167,9 +167,8 @@ static value
 zkocaml_enum_error_c2ml(enum ZOO_ERRORS error)
 {
   CAMLlocal1(v);
-  int index = 0;
-  for (int i = 0;
-         i < zkocaml_table_len(ZOO_ERRORS_TABLE); i++) {
+  int i = 0, index = 0;
+  for (; i < zkocaml_table_len(ZOO_ERRORS_TABLE); i++) {
     if (error == ZOO_ERRORS_TABLE[i]) {
       index = i;
       break;
@@ -189,9 +188,8 @@ static value
 zkocaml_enum_loglevel_c2ml(ZooLogLevel log_level)
 {
   CAMLlocal1(v);
-  int index = 0;
-  for (int i = 0;
-         i < zkocaml_table_len(ZOO_LOG_LEVEL_TABLE); i++) {
+  int i = 0, index = 0;
+  for (; i < zkocaml_table_len(ZOO_LOG_LEVEL_TABLE); i++) {
     if (log_level == ZOO_LOG_LEVEL_TABLE[i]) {
       index = i;
       break;
@@ -235,7 +233,7 @@ zkocaml_enum_event_ml2c(value v)
 static value
 zkocaml_enum_event_c2ml(int event)
 {
-  int index = 0;
+  int i = 0, index = 0;
   ZOO_EVENT_AUX event_aux;
 
   if (event == ZOO_CREATED_EVENT) {
@@ -252,8 +250,7 @@ zkocaml_enum_event_c2ml(int event)
     event_aux = ZOO_NOTWATCHING_EVENT_AUX;
   }
 
-  for (int i = 0;
-         i < zkocaml_table_len(ZOO_EVENT_TABLE); i++) {
+  for (; i < zkocaml_table_len(ZOO_EVENT_TABLE); i++) {
     if (event_aux == ZOO_EVENT_TABLE[i]) {
       index = i;
       break;
@@ -295,7 +292,7 @@ zkocaml_enum_state_c2ml(int state)
 {
   CAMLlocal1(v);
 
-  int index = 0;
+  int i = 0, index = 0;
   ZOO_STATE_AUX state_aux;
 
   if (state == ZOO_EXPIRED_SESSION_STATE) {
@@ -310,8 +307,7 @@ zkocaml_enum_state_c2ml(int state)
     state_aux = ZOO_CONNECTED_STATE_AUX;
   }
 
-  for (int i = 0;
-         i < zkocaml_table_len(ZOO_STATE_TABLE); i++) {
+  for (; i < zkocaml_table_len(ZOO_STATE_TABLE); i++) {
     if (state_aux == ZOO_STATE_TABLE[i]) {
       index = i;
       break;
@@ -356,7 +352,7 @@ zkocaml_enum_perm_c2ml(int perm)
 {
   CAMLlocal1(v);
 
-  int index = 0;
+  int i = 0, index = 0;
   ZOO_PERM_AUX perm_aux;
 
   if (perm == ZOO_PERM_READ) {
@@ -373,8 +369,7 @@ zkocaml_enum_perm_c2ml(int perm)
     perm_aux = ZOO_PERM_ALL_AUX;
   }
 
-  for (int i = 0;
-         i < zkocaml_table_len(ZOO_PERM_TABLE); i++) {
+  for (; i < zkocaml_table_len(ZOO_PERM_TABLE); i++) {
     if (perm_aux == ZOO_PERM_TABLE[i]) {
       index = i;
       break;
@@ -407,7 +402,7 @@ zkocaml_enum_create_flag_c2ml(int create_flag)
 {
   CAMLlocal1(v);
 
-  int index = 0;
+  int i = 0, index = 0;
   ZOO_CREATE_FLAG_AUX create_flag_aux;
 
   if (create_flag == ZOO_EPHEMERAL) {
@@ -416,8 +411,7 @@ zkocaml_enum_create_flag_c2ml(int create_flag)
     create_flag_aux = ZOO_SEQUENCE_AUX;
   }
 
-  for (int i = 0;
-         i < zkocaml_table_len(ZOO_CREATE_FLAG_TABLE); i++) {
+  for (; i < zkocaml_table_len(ZOO_CREATE_FLAG_TABLE); i++) {
     if (create_flag_aux == ZOO_CREATE_FLAG_TABLE[i]) {
       index = i;
       break;
@@ -442,8 +436,10 @@ watcher_dispatch(zhandle_t *zh,
   value watcher_callback = ctx->watcher_callback;
 
   local_zh = zkocaml_copy_zhandle(zh);
-  local_type = Val_int(type);
-  local_state = Val_int(state);
+  // local_type = Val_int(type);
+  local_type = zkocaml_enum_event_c2ml(type);
+  // local_state = Val_int(state);
+  local_state = zkocaml_enum_state_c2ml(state);
   local_path = caml_copy_string(path);
   local_watcher_ctx = caml_copy_string(ctx->watcher_ctx);
 
