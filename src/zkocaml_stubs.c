@@ -32,48 +32,51 @@
 
 #include "zkocaml_stubs.h"
 
-#define zhandle_struct_val(v) (*(zkocaml_handle_t **)Data_custom_val(v))
+#define zkocaml_handle_struct_val(v) \
+  (*(zkocaml_handle_t **)Data_custom_val(v))
 
 static void
-zhandle_struct_finalize(value ve)
+zkocaml_handle_struct_finalize(value ve)
 {
   zkocaml_handle_t *h = NULL;
-  h = zhandle_struct_val(ve);
-  zookeeper_close(h->handle);
+  h = zkocaml_handle_struct_val(ve);
+  if (zoo_state(h->handle) == ZOO_CONNECTED_STATE) {
+    zookeeper_close(h->handle);
+  }
 }
 
 static int
-zhandle_struct_compare(value v1, value v2)
+zkocaml_handle_struct_compare(value v1, value v2)
 {
-  zkocaml_handle_t *h1 = zhandle_struct_val(v1);
-  zkocaml_handle_t *h2 = zhandle_struct_val(v2);
+  zkocaml_handle_t *h1 = zkocaml_handle_struct_val(v1);
+  zkocaml_handle_t *h2 = zkocaml_handle_struct_val(v2);
   if (h1 == h2) return 0;
   else if (h1 < h2) return -1;
   return 1;
 }
 
 static long
-zhandle_struct_hash(value v)
+zkocaml_handle_struct_hash(value v)
 {
-  return (long) zhandle_struct_val(v);
+  return (long) zkocaml_handle_struct_val(v);
 }
 
-static struct custom_operations zhandle_struct_ops = {
+static struct custom_operations zkocaml_handle_struct_ops = {
   "org.apache.zookeeper",
-  zhandle_struct_finalize,
-  zhandle_struct_compare,
-  zhandle_struct_hash,
+  zkocaml_handle_struct_finalize,
+  zkocaml_handle_struct_compare,
+  zkocaml_handle_struct_hash,
   custom_serialize_default,
   custom_deserialize_default
 };
 
 static value
-zkocaml_copy_zhandler(zkocaml_handle_t *zh)
+zkocaml_copy_zhandle(zkocaml_handle_t *zh)
 {
   CAMLparam0();
   CAMLlocal1(h);
 
-  h = caml_alloc_custom(&zhandle_struct_ops,
+  h = caml_alloc_custom(&zkocaml_handle_struct_ops,
           sizeof(zkocaml_handle_t), 0, 1);
   memcpy(Data_custom_val(h), zh, sizeof(zkocaml_handle_t));
 
@@ -87,7 +90,8 @@ watcher_dispatch(zhandle_t *zh,
                  const char *path,
                  void *watcher_ctx)
 {
-  CAMLlocal5(local_zh, local_type, local_state, local_path, local_watcher_ctx);
+  CAMLlocal5(local_zh, local_type, local_state,
+             local_path, local_watcher_ctx);
   CAMLlocalN(args, 5);
 
   zkocaml_watcher_context_t *ctx =
@@ -97,14 +101,11 @@ watcher_dispatch(zhandle_t *zh,
   zkocaml_handle_t local_handle;
   local_handle.handle = zh;
 
-  // args = caml_alloc(5, 0);
-  local_zh = zkocaml_copy_zhandler(&local_handle);
+  local_zh = zkocaml_copy_zhandle(&local_handle);
   local_type = type;
   local_state = state;
   local_path = caml_copy_string(path);
-  local_watcher_ctx = caml_alloc_string(ctx->watcher_ctx_len);
-  memcpy(String_val(local_watcher_ctx),
-          ctx->watcher_ctx, ctx->watcher_ctx_len);
+  local_watcher_ctx = caml_copy_string(ctx->watcher_ctx);
 
   Store_field(args, 0, local_zh);
   Store_field(args, 1, local_type);
@@ -206,21 +207,21 @@ zkocaml_init_native(value host,
   CAMLxparam1(flag);
   CAMLlocal1(zh);
 
+  const char *local_host = String_val(host);
+  int local_recv_timeout = Long_val(recv_timeout);
+
   zkocaml_watcher_context_t *ctx = (zkocaml_watcher_context_t *)
       malloc(sizeof(zkocaml_watcher_context_t));
   ctx->watcher_ctx = String_val(context);
-  ctx->watcher_ctx_len = strlen(ctx->watcher_ctx);
   ctx->watcher_callback = watcher_fn;
 
-  const char *local_host = String_val(host);
-  int local_recv_timeout = Long_val(recv_timeout);
   zhandle_t *handle = zookeeper_init(local_host,
           watcher_dispatch, local_recv_timeout, 0, ctx, 0);
 
   zkocaml_handle_t zkhandle;
   zkhandle.handle = handle;
 
-  zh = zkocaml_copy_zhandler(&zkhandle);
+  zh = zkocaml_copy_zhandle(&zkhandle);
   CAMLreturn(zh);
 }
 

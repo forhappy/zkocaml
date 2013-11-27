@@ -20,6 +20,14 @@
 #ifndef _ZKOCAML_H_
 #define _ZKOCAML_H_
 
+#include <caml/mlvalues.h>
+#include <caml/memory.h>
+#include <caml/alloc.h>
+#include <caml/fail.h>
+#include <caml/callback.h>
+#include <caml/custom.h>
+#include <caml/signals.h>
+
 #include <zookeeper/zookeeper.h>
 
 typedef struct zkocaml_handle_s_ {
@@ -27,8 +35,7 @@ typedef struct zkocaml_handle_s_ {
 } zkocaml_handle_t;
 
 typedef struct zkocaml_watcher_context_s_ {
-  char *watcher_ctx;
-  size_t watcher_ctx_len;
+  void *watcher_ctx;
   value watcher_callback;
 } zkocaml_watcher_context_t;
 
