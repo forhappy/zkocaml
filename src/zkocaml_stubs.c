@@ -35,13 +35,82 @@
 #define zkocaml_handle_struct_val(v) \
   (*(zkocaml_handle_t **)Data_custom_val(v))
 
+#define zkocaml_table_len(v) \
+  sizeof(v) / sizeof(v[0])
+
+static const enum ZOO_ERRORS ZOO_ERRORS_TABLE[] = {
+  ZOK,
+  ZSYSTEMERROR,
+  ZRUNTIMEINCONSISTENCY,
+  ZDATAINCONSISTENCY,
+  ZCONNECTIONLOSS,
+  ZMARSHALLINGERROR,
+  ZUNIMPLEMENTED,
+  ZOPERATIONTIMEOUT,
+  ZBADARGUMENTS,
+  ZINVALIDSTATE,
+  ZAPIERROR,
+  ZNONODE,
+  ZNOAUTH,
+  ZBADVERSION,
+  ZNOCHILDRENFOREPHEMERALS,
+  ZNODEEXISTS,
+  ZNOTEMPTY,
+  ZSESSIONEXPIRED,
+  ZINVALIDCALLBACK,
+  ZINVALIDACL,
+  ZAUTHFAILED,
+  ZCLOSING,
+  ZNOTHING,
+  ZSESSIONMOVED
+};
+
+static const ZooLogLevel ZOO_LOG_LEVEL_TABLE[] = {
+  ZOO_LOG_LEVEL_ERROR,
+  ZOO_LOG_LEVEL_WARN,
+  ZOO_LOG_LEVEL_INFO,
+  ZOO_LOG_LEVEL_DEBUG
+};
+
+static const ZOO_EVENT_AUX ZOO_EVENT_TABLE[] = {
+  ZOO_CREATED_EVENT_AUX,
+  ZOO_DELETED_EVENT_AUX,
+  ZOO_CHANGED_EVENT_AUX,
+  ZOO_CHILD_EVENT_AUX,
+  ZOO_SESSION_EVENT_AUX,
+  ZOO_NOTWATCHING_EVENT_AUX
+};
+
+static const ZOO_STATE_AUX ZOO_STATE_TABLE[] = {
+  ZOO_EXPIRED_SESSION_STATE_AUX,
+  ZOO_AUTH_FAILED_STATE_AUX,
+  ZOO_CONNECTING_STATE_AUX,
+  ZOO_ASSOCIATING_STATE_AUX,
+  ZOO_CONNECTED_STATE_AUX
+};
+
+static const ZOO_PERM_AUX ZOO_PERM_TABLE[] = {
+  ZOO_PERM_READ_AUX,
+  ZOO_PERM_WRITE_AUX,
+  ZOO_PERM_CREATE_AUX,
+  ZOO_PERM_DELETE_AUX,
+  ZOO_PERM_ADMIN_AUX,
+  ZOO_PERM_ALL_AUX
+};
+
+static const ZOO_CREATE_FLAG_AUX ZOO_CREATE_FLAG_TABLE[] = {
+    ZOO_EPHEMERAL_AUX,
+    ZOO_SEQUENCE_AUX
+};
+
+
 static void
 zkocaml_handle_struct_finalize(value ve)
 {
-  zkocaml_handle_t *h = NULL;
-  h = zkocaml_handle_struct_val(ve);
-  if (zoo_state(h->handle) == ZOO_CONNECTED_STATE) {
-    zookeeper_close(h->handle);
+  zkocaml_handle_t *zhandle = NULL;
+  zhandle = zkocaml_handle_struct_val(ve);
+  if (zoo_state(zhandle->handle) == ZOO_CONNECTED_STATE) {
+    zookeeper_close(zhandle->handle);
   }
 }
 
@@ -61,7 +130,7 @@ zkocaml_handle_struct_hash(value v)
   return (long) zkocaml_handle_struct_val(v);
 }
 
-static struct custom_operations zkocaml_handle_struct_ops = {
+static struct custom_operations zhandle_struct_ops = {
   "org.apache.zookeeper",
   zkocaml_handle_struct_finalize,
   zkocaml_handle_struct_compare,
@@ -71,16 +140,290 @@ static struct custom_operations zkocaml_handle_struct_ops = {
 };
 
 static value
-zkocaml_copy_zhandle(zkocaml_handle_t *zh)
+zkocaml_copy_zhandle(zhandle_t *zh)
 {
   CAMLparam0();
-  CAMLlocal1(h);
+  CAMLlocal1(handle);
 
-  h = caml_alloc_custom(&zkocaml_handle_struct_ops,
+  zkocaml_handle_t *zhandle = (zkocaml_handle_t *)
+      malloc(sizeof(zkocaml_handle_t));
+  zhandle->handle = zh;
+
+  handle = caml_alloc_custom(&zhandle_struct_ops,
           sizeof(zkocaml_handle_t), 0, 1);
-  memcpy(Data_custom_val(h), zh, sizeof(zkocaml_handle_t));
+  memcpy(Data_custom_val(handle), &zhandle, sizeof(zkocaml_handle_t));
 
-  CAMLreturn(h);
+  CAMLreturn(handle);
+}
+
+static enum ZOO_ERRORS
+zkocaml_enum_error_ml2c(value v)
+{
+  CAMLparam1(v);
+  return ZOO_ERRORS_TABLE[Long_val(v)];
+}
+
+static value
+zkocaml_enum_error_c2ml(enum ZOO_ERRORS error)
+{
+  CAMLlocal1(v);
+  int index = 0;
+  for (int i = 0;
+         i < zkocaml_table_len(ZOO_ERRORS_TABLE); i++) {
+    if (error == ZOO_ERRORS_TABLE[i]) {
+      index = i;
+      break;
+    }
+  }
+  return index;
+}
+
+static ZooLogLevel
+zkocaml_enum_loglevel_ml2c(value v)
+{
+  CAMLparam1(v);
+  return ZOO_LOG_LEVEL_TABLE[Long_val(v)];
+}
+
+static value
+zkocaml_enum_loglevel_c2ml(ZooLogLevel log_level)
+{
+  CAMLlocal1(v);
+  int index = 0;
+  for (int i = 0;
+         i < zkocaml_table_len(ZOO_LOG_LEVEL_TABLE); i++) {
+    if (log_level == ZOO_LOG_LEVEL_TABLE[i]) {
+      index = i;
+      break;
+    }
+  }
+  return index;
+}
+
+static int
+zkocaml_enum_event_ml2c(value v)
+{
+  CAMLparam1(v);
+
+  int event = -1;
+  ZOO_EVENT_AUX event_aux = Int_val(v);
+
+  switch(event_aux) {
+  case ZOO_CREATED_EVENT_AUX:
+    event = ZOO_CREATED_EVENT;
+    break;
+  case ZOO_DELETED_EVENT_AUX:
+    event = ZOO_DELETED_EVENT;
+    break;
+  case ZOO_CHANGED_EVENT_AUX:
+    event = ZOO_CHANGED_EVENT;
+    break;
+  case ZOO_CHILD_EVENT_AUX:
+    event = ZOO_CHILD_EVENT;
+    break;
+  case ZOO_SESSION_EVENT_AUX:
+    event = ZOO_SESSION_EVENT;
+    break;
+  case ZOO_NOTWATCHING_EVENT_AUX:
+    event = ZOO_NOTWATCHING_EVENT;
+    break;
+  }
+
+  return Val_int(event);
+}
+
+static value
+zkocaml_enum_event_c2ml(int event)
+{
+  int index = 0;
+  ZOO_EVENT_AUX event_aux;
+
+  if (event == ZOO_CREATED_EVENT) {
+    event_aux = ZOO_CREATED_EVENT_AUX;
+  } else if (event == ZOO_DELETED_EVENT) {
+    event_aux = ZOO_DELETED_EVENT_AUX;
+  } else if (event == ZOO_CHANGED_EVENT) {
+    event_aux = ZOO_CHANGED_EVENT_AUX;
+  } else if (event == ZOO_CHILD_EVENT) {
+    event_aux = ZOO_CHILD_EVENT_AUX;
+  } else if (event == ZOO_SESSION_EVENT) {
+    event_aux = ZOO_SESSION_EVENT_AUX;
+  } else if (event == ZOO_NOTWATCHING_EVENT) {
+    event_aux = ZOO_NOTWATCHING_EVENT_AUX;
+  }
+
+  for (int i = 0;
+         i < zkocaml_table_len(ZOO_EVENT_TABLE); i++) {
+    if (event_aux == ZOO_EVENT_TABLE[i]) {
+      index = i;
+      break;
+    }
+  }
+  return Val_int(index);
+}
+
+static int
+zkocaml_enum_state_ml2c(value v)
+{
+  CAMLparam1(v);
+  int state = -1;
+  ZOO_STATE_AUX state_aux = Int_val(v);
+
+  switch(state_aux) {
+  case ZOO_EXPIRED_SESSION_STATE_AUX:
+    state = ZOO_EXPIRED_SESSION_STATE;
+    break;
+  case ZOO_AUTH_FAILED_STATE_AUX:
+    state = ZOO_AUTH_FAILED_STATE;
+    break;
+  case ZOO_CONNECTING_STATE_AUX:
+    state = ZOO_CONNECTING_STATE;
+    break;
+  case ZOO_ASSOCIATING_STATE_AUX:
+    state = ZOO_ASSOCIATING_STATE;
+    break;
+  case ZOO_CONNECTED_STATE_AUX:
+    state = ZOO_CONNECTED_STATE;
+    break;
+  }
+
+  return Val_int(state);
+}
+
+static value
+zkocaml_enum_state_c2ml(int state)
+{
+  CAMLlocal1(v);
+
+  int index = 0;
+  ZOO_STATE_AUX state_aux;
+
+  if (state == ZOO_EXPIRED_SESSION_STATE) {
+    state_aux = ZOO_EXPIRED_SESSION_STATE_AUX;
+  } else if (state == ZOO_AUTH_FAILED_STATE) {
+    state_aux = ZOO_AUTH_FAILED_STATE_AUX;
+  } else if (state == ZOO_CONNECTING_STATE) {
+    state_aux = ZOO_CONNECTING_STATE_AUX;
+  } else if (state == ZOO_ASSOCIATING_STATE) {
+    state_aux = ZOO_ASSOCIATING_STATE_AUX;
+  } else if (state == ZOO_CONNECTED_STATE) {
+    state_aux = ZOO_CONNECTED_STATE_AUX;
+  }
+
+  for (int i = 0;
+         i < zkocaml_table_len(ZOO_STATE_TABLE); i++) {
+    if (state_aux == ZOO_STATE_TABLE[i]) {
+      index = i;
+      break;
+    }
+  }
+  return Val_int(index);
+}
+
+static int
+zkocaml_enum_perm_ml2c(value v)
+{
+  CAMLparam1(v);
+  int perm = -1;
+  ZOO_PERM_AUX perm_aux = Int_val(v);
+
+  switch(perm_aux) {
+  case ZOO_PERM_READ_AUX:
+    perm = ZOO_PERM_READ;
+    break;
+  case ZOO_PERM_WRITE_AUX:
+    perm = ZOO_PERM_WRITE;
+    break;
+  case ZOO_PERM_CREATE_AUX:
+    perm = ZOO_PERM_CREATE;
+    break;
+  case ZOO_PERM_DELETE_AUX:
+    perm = ZOO_PERM_DELETE;
+    break;
+  case ZOO_PERM_ADMIN_AUX:
+    perm = ZOO_PERM_ADMIN;
+    break;
+  case ZOO_PERM_ALL_AUX:
+    perm = ZOO_PERM_ALL;
+    break;
+  }
+
+  return Val_int(perm);
+}
+
+static value
+zkocaml_enum_perm_c2ml(int perm)
+{
+  CAMLlocal1(v);
+
+  int index = 0;
+  ZOO_PERM_AUX perm_aux;
+
+  if (perm == ZOO_PERM_READ) {
+    perm_aux = ZOO_PERM_READ_AUX;
+  } else if (perm == ZOO_PERM_WRITE) {
+    perm_aux = ZOO_PERM_WRITE_AUX;
+  } else if (perm == ZOO_PERM_CREATE) {
+    perm_aux = ZOO_PERM_CREATE_AUX;
+  } else if (perm == ZOO_PERM_DELETE) {
+    perm_aux = ZOO_PERM_DELETE_AUX;
+  } else if (perm == ZOO_PERM_ADMIN) {
+    perm_aux = ZOO_PERM_ADMIN_AUX;
+  } else if (perm == ZOO_PERM_ALL) {
+    perm_aux = ZOO_PERM_ALL_AUX;
+  }
+
+  for (int i = 0;
+         i < zkocaml_table_len(ZOO_PERM_TABLE); i++) {
+    if (perm_aux == ZOO_PERM_TABLE[i]) {
+      index = i;
+      break;
+    }
+  }
+  return Val_int(index);
+}
+
+static int
+zkocaml_enum_create_flag_ml2c(value v)
+{
+  CAMLparam1(v);
+  int create_flag = -1;
+  ZOO_CREATE_FLAG_AUX create_flag_aux = Int_val(v);
+
+  switch(create_flag_aux) {
+  case ZOO_EPHEMERAL_AUX:
+    create_flag = ZOO_EPHEMERAL;
+    break;
+  case ZOO_SEQUENCE_AUX:
+    create_flag = ZOO_SEQUENCE;
+    break;
+  }
+
+  return Val_int(create_flag);
+}
+
+static value
+zkocaml_enum_create_flag_c2ml(int create_flag)
+{
+  CAMLlocal1(v);
+
+  int index = 0;
+  ZOO_CREATE_FLAG_AUX create_flag_aux;
+
+  if (create_flag == ZOO_EPHEMERAL) {
+    create_flag_aux = ZOO_EPHEMERAL_AUX;
+  } else if (create_flag == ZOO_SEQUENCE) {
+    create_flag_aux = ZOO_SEQUENCE_AUX;
+  }
+
+  for (int i = 0;
+         i < zkocaml_table_len(ZOO_CREATE_FLAG_TABLE); i++) {
+    if (create_flag_aux == ZOO_CREATE_FLAG_TABLE[i]) {
+      index = i;
+      break;
+    }
+  }
+  return Val_int(index);
 }
 
 static void
@@ -98,12 +441,9 @@ watcher_dispatch(zhandle_t *zh,
       (zkocaml_watcher_context_t* )(watcher_ctx);
   value watcher_callback = ctx->watcher_callback;
 
-  zkocaml_handle_t local_handle;
-  local_handle.handle = zh;
-
-  local_zh = zkocaml_copy_zhandle(&local_handle);
-  local_type = type;
-  local_state = state;
+  local_zh = zkocaml_copy_zhandle(zh);
+  local_type = Val_int(type);
+  local_state = Val_int(state);
   local_path = caml_copy_string(path);
   local_watcher_ctx = caml_copy_string(ctx->watcher_ctx);
 
@@ -218,10 +558,7 @@ zkocaml_init_native(value host,
   zhandle_t *handle = zookeeper_init(local_host,
           watcher_dispatch, local_recv_timeout, 0, ctx, 0);
 
-  zkocaml_handle_t zkhandle;
-  zkhandle.handle = handle;
-
-  zh = zkocaml_copy_zhandle(&zkhandle);
+  zh = zkocaml_copy_zhandle(handle);
   CAMLreturn(zh);
 }
 
@@ -330,6 +667,12 @@ CAMLprim value
 zkocaml_state(value zh)
 {
   CAMLparam1(zh);
+  CAMLlocal1(state);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  state = zoo_state(zhandle->handle);
+
+  CAMLreturn(state);
 }
 
 /**

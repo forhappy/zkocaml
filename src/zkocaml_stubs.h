@@ -30,6 +30,10 @@
 
 #include <zookeeper/zookeeper.h>
 
+/**
+ * The zkocaml_handle_t wraps a zookeeper connection handle
+ * which indicates a zookeeper session that corresponds to that handle.
+ */
 typedef struct zkocaml_handle_s_ {
   zhandle_t *handle;
 } zkocaml_handle_t;
@@ -38,5 +42,37 @@ typedef struct zkocaml_watcher_context_s_ {
   void *watcher_ctx;
   value watcher_callback;
 } zkocaml_watcher_context_t;
+
+typedef enum ZOO_EVENT_AUX {
+  ZOO_CREATED_EVENT_AUX,
+  ZOO_DELETED_EVENT_AUX,
+  ZOO_CHANGED_EVENT_AUX,
+  ZOO_CHILD_EVENT_AUX,
+  ZOO_SESSION_EVENT_AUX,
+  ZOO_NOTWATCHING_EVENT_AUX
+} ZOO_EVENT_AUX;
+
+typedef enum ZOO_STATE_AUX {
+  ZOO_EXPIRED_SESSION_STATE_AUX,
+  ZOO_AUTH_FAILED_STATE_AUX,
+  ZOO_CONNECTING_STATE_AUX,
+  ZOO_ASSOCIATING_STATE_AUX,
+  ZOO_CONNECTED_STATE_AUX
+} ZOO_STATE_AUX ;
+
+typedef enum ZOO_PERM_AUX {
+  ZOO_PERM_READ_AUX,
+  ZOO_PERM_WRITE_AUX,
+  ZOO_PERM_CREATE_AUX,
+  ZOO_PERM_DELETE_AUX,
+  ZOO_PERM_ADMIN_AUX,
+  ZOO_PERM_ALL_AUX
+} ZOO_PERM_AUX;
+
+typedef enum ZOO_CREATE_FLAG_AUX {
+  ZOO_EPHEMERAL_AUX,
+  ZOO_SEQUENCE_AUX
+} ZOO_CREATE_FLAG_AUX;
+
 
 #endif  // _ZKOCAML_H_

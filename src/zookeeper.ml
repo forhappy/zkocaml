@@ -408,7 +408,8 @@ external set_watcher : zh:zhandle -> watcher_fn:watcher_callback
 
 external get_connected_host : zh:zhandle -> string = "zkocaml_get_connected_host"
 
-external zstate : zh:zhandle -> state = "zkocaml_state"
+(* external zstate : zh:zhandle -> state = "zkocaml_state" *)
+external zstate : zh:zhandle -> int = "zkocaml_state"
 
 external acreate : zh:zhandle -> path:string -> value:string
   -> acls:acl ->flags:create_flag -> completion:string_completion_callback

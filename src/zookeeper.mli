@@ -93,7 +93,7 @@ external set_watcher :
   = "zkocaml_set_watcher"
 external get_connected_host : zh:zhandle -> string
   = "zkocaml_get_connected_host"
-external zstate : zh:zhandle -> state = "zkocaml_state"
+external zstate : zh:zhandle -> int = "zkocaml_state"
 external acreate :
   zh:zhandle ->
   path:string ->
