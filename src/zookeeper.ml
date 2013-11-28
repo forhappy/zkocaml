@@ -38,11 +38,10 @@ type zhandle
  **)
 type client_id = {client_id: int64; passwd: string}
 
-type id = {scheme: string; id: string}
-type acl = {perms: int32; id: id}
-type acls = acl list
+type acl = {perms: int32; scheme: string; id: string}
+type acls = acl array
 
-type strings = string list
+type strings = string array
 
 type stat = {
   czxid: int64;

@@ -455,24 +455,54 @@ zkocaml_parse_clientid(value v)
 static value
 zkocaml_build_stat_struct(const struct Stat *stat)
 {
-  // TODO: implementation needed here.
   CAMLlocal1(v);
+
+  v = caml_alloc(11, 0);
+  Store_field(v, 0, Val_long(stat->czxid));
+  Store_field(v, 1, Val_long(stat->mzxid));
+  Store_field(v, 2, Val_long(stat->ctime));
+  Store_field(v, 3, Val_long(stat->mtime));
+  Store_field(v, 4, Val_int(stat->version));
+  Store_field(v, 5, Val_int(stat->cversion));
+  Store_field(v, 6, Val_int(stat->aversion));
+  Store_field(v, 7, Val_long(stat->ephemeralOwner));
+  Store_field(v, 8, Val_int(stat->dataLength));
+  Store_field(v, 9, Val_int(stat->numChildren));
+  Store_field(v, 10, Val_int(stat->pzxid));
+
   return v;
 }
 
 static value
 zkocaml_build_strings_struct(const struct String_vector *strings)
 {
-  // TODO: implementation needed here.
+  int i = 0;
   CAMLlocal1(v);
+
+  v = caml_alloc(strings->count, 0);
+  for (; i < strings->count; i++) {
+    Store_field(v, i, caml_copy_string(strings->data[i]));
+  }
+
   return v;
 }
 
 static value
 zkocaml_build_acls_struct(const struct ACL_vector *acls)
 {
-  // TODO: implementation needed here.
+  int i = 0;
   CAMLlocal1(v);
+  v = caml_alloc(acls->count, 0);
+  for (; i < acls->count; i++) {
+    CAMLlocal1(acl);
+    acl = caml_alloc(3, 0);
+    Store_field(acl, 0, acls->data[i].perms);
+    Store_field(acl, 1, caml_copy_string(acls->data[i].id.scheme));
+    Store_field(acl, 2, caml_copy_string(acls->data[i].id.id));
+
+    Store_field(v, i, acl);
+  }
+
   return v;
 }
 
