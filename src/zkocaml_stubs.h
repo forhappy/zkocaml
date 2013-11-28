@@ -47,6 +47,14 @@ typedef struct zkocaml_watcher_context_s_ {
 } zkocaml_watcher_context_t;
 
 /**
+ * The zkocaml_completion_context_t wraps a zookeeper completion data.
+ */
+typedef struct zkocaml_completion_context_s_ {
+  void *data;
+  value completion_callback;
+} zkocaml_completion_context_t;
+
+/**
  * The ZOO_EPHEMERAL_AUX wraps zookeeper event type.
  */
 typedef enum ZOO_EVENT_AUX {
@@ -82,7 +90,7 @@ typedef enum ZOO_PERM_AUX {
 } ZOO_PERM_AUX;
 
 /**
- * The ZOO_CREATE_FLAG_AUX wraps zookeeper the creation flag of a node.
+ * The ZOO_CREATE_FLAG_AUX wraps zookeeper creation flag.
  */
 typedef enum ZOO_CREATE_FLAG_AUX {
   ZOO_EPHEMERAL_AUX,

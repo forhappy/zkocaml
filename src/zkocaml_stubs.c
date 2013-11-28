@@ -452,6 +452,30 @@ zkocaml_parse_clientid(value v)
   return cid;
 }
 
+static value
+zkocaml_build_stat_struct(const struct Stat *stat)
+{
+  // TODO: implementation needed here.
+  CAMLlocal1(v);
+  return v;
+}
+
+static value
+zkocaml_build_strings_struct(const struct String_vector *strings)
+{
+  // TODO: implementation needed here.
+  CAMLlocal1(v);
+  return v;
+}
+
+static value
+zkocaml_build_acls_struct(const struct ACL_vector *acls)
+{
+  // TODO: implementation needed here.
+  CAMLlocal1(v);
+  return v;
+}
+
 static void
 watcher_dispatch(zhandle_t *zh,
                  int type,
@@ -459,13 +483,14 @@ watcher_dispatch(zhandle_t *zh,
                  const char *path,
                  void *watcher_ctx)
 {
+  CAMLlocal1(watcher_callback);
   CAMLlocal5(local_zh, local_type, local_state,
              local_path, local_watcher_ctx);
   CAMLlocalN(args, 5);
 
   zkocaml_watcher_context_t *ctx =
       (zkocaml_watcher_context_t* )(watcher_ctx);
-  value watcher_callback = ctx->watcher_callback;
+  watcher_callback = ctx->watcher_callback;
 
   local_zh = zkocaml_copy_zhandle(zh);
   local_type = zkocaml_enum_event_c2ml(type);
@@ -482,49 +507,195 @@ watcher_dispatch(zhandle_t *zh,
   callbackN(watcher_callback, 5, args);
 }
 
+/**
+ * The completion callbacks (from asynchronous calls) are
+ * implemented similarly.
+ */
+
+/**
+ * Called when an asynchronous call that returns void completes and
+ * dispatches user provided callback
+ */
 static void
 void_completion_dispatch(int rc, const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal2(local_rc, local_data);
 
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_data = caml_copy_string(ctx->data);
+
+  callback2(completion_callback, local_rc, local_data);
+}
+
+/**
+ * Called when an asynchronous call that returns a stat structure
+ * completes and dispatches user provided callback
+ */
 static void
 stat_completion_dispatch(int rc,
                          const struct Stat *stat,
                          const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal3(local_rc, local_stat, local_data);
 
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_stat = zkocaml_build_stat_struct(stat);
+  local_data = caml_copy_string(ctx->data);
+
+  callback3(completion_callback, local_rc, local_stat, local_data);
+}
+/**
+ * Called when an asynchronous call that returns a stat structure and
+ * some untyped data completes and dispatches user provided
+ * callback (used by aget)
+ */
 static void
 data_completion_dispatch(int rc,
-                         const char *value,
-                         int value_len,
+                         const char *val,
+                         int val_len,
                          const struct Stat *stat,
                          const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal5(local_rc, local_val, local_val_len, local_stat, local_data);
+  CAMLlocalN(args, 5);
 
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_val = caml_copy_string(val);
+  local_val_len = Val_int(val_len);
+  local_stat = zkocaml_build_stat_struct(stat);
+  local_data = caml_copy_string(ctx->data);
+
+  Store_field(args, 0, local_rc);
+  Store_field(args, 1, local_val);
+  Store_field(args, 2, local_val_len);
+  Store_field(args, 3, local_stat);
+  Store_field(args, 4, local_data);
+
+  callbackN(completion_callback, 5, args);
+}
+
+/**
+ * Called when an asynchronous call that returns a list of strings
+ * completes and dispatches user provided callback.
+ */
 static void
 strings_completion_dispatch(int rc,
                             const struct String_vector *strings,
                             const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal3(local_rc, local_strings, local_data);
 
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_strings = zkocaml_build_strings_struct(strings);
+  local_data = caml_copy_string(ctx->data);
+
+  callback3(completion_callback, local_rc, local_strings, local_data);
+}
+
+/**
+ * Called when an asynchronous call that returns a list of strings
+ * and a stat structure completes and dispatches user provided callback.
+ */
 static void
 strings_stat_completion_dispatch(int rc,
                                  const struct String_vector *strings,
                                  const struct Stat *stat,
                                  const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal4(local_rc, local_strings, local_stat, local_data);
+  CAMLlocalN(args, 4);
 
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_strings = zkocaml_build_strings_struct(strings);
+  local_stat = zkocaml_build_stat_struct(stat);
+  local_data = caml_copy_string(ctx->data);
+
+  Store_field(args, 0, local_rc);
+  Store_field(args, 1, local_strings);
+  Store_field(args, 2, local_stat);
+  Store_field(args, 3, local_data);
+
+  callbackN(completion_callback, 4, args);
+}
+
+/**
+ * Called when an asynchronous call that returns a single string
+ * completes and dispatches user provided callback.
+ */
 static void
 string_completion_dispatch(int rc,
-                           const char *value,
+                           const char *val,
                            const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal3(local_rc, local_val, local_data);
 
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_val = caml_copy_string(val);
+  local_data = caml_copy_string(ctx->data);
+
+  callback3(completion_callback, local_rc, local_val, local_data);
+}
+
+/**
+ * Called when an asynchronous call that returns a list of ACLs
+ * completes and dispatches user provided callback.
+ */
 static void
 acl_completion_dispatch(int rc,
                         struct ACL_vector *acl,
                         struct Stat *stat,
                         const void *data)
-{}
+{
+  CAMLlocal1(completion_callback);
+  CAMLlocal4(local_rc, local_acl, local_stat, local_data);
+  CAMLlocalN(args, 4);
+
+  zkocaml_completion_context_t *ctx =
+    (zkocaml_completion_context_t *)data;
+
+  completion_callback = ctx->completion_callback;
+  local_rc = zkocaml_enum_error_c2ml(rc);
+  local_acl = zkocaml_build_acls_struct(acl);
+  local_stat = zkocaml_build_stat_struct(stat);
+  local_data = caml_copy_string(ctx->data);
+
+  Store_field(args, 0, local_rc);
+  Store_field(args, 1, local_acl);
+  Store_field(args, 2, local_stat);
+  Store_field(args, 3, local_data);
+
+  callbackN(completion_callback, 4, args);
+}
 
 /**
  * Create a handle to used communicate with zookeeper.

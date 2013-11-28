@@ -287,7 +287,7 @@ type stat_completion_callback = error -> stat -> string -> unit
  * is responsible for any memory freeing associated with the data
  * pointer.
  *)
-type data_completion_callback = error -> string -> stat -> string -> unit
+type data_completion_callback = error -> string -> int -> stat -> string -> unit
 
 (**
  * Signature of a completion function that returns a list of strings.
