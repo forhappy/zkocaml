@@ -452,22 +452,43 @@ zkocaml_parse_clientid(value v)
   return cid;
 }
 
+static int
+zkocaml_parse_acls(value v, struct ACL_vector *acls)
+{
+  CAMLparam1(v);
+
+  int i = 0, vlen = Wosize_val(v);
+  if (vlen == 0) return 0;
+
+  acls->count = vlen;
+  acls->data = (struct ACL *)calloc(acls->count, sizeof(struct ACL));
+  for (; i < vlen; i++) {
+      CAMLlocal1(acl);
+      acl = Field(v, i);
+      acls->data[i].perms = Field(acl, 0);
+      acls->data[i].id.scheme = strdup(String_val(Field(acl, 1)));
+      acls->data[i].id.id = strdup(String_val(Field(acl, 2)));
+  }
+
+  return 1;
+}
+
 static value
 zkocaml_build_stat_struct(const struct Stat *stat)
 {
   CAMLlocal1(v);
 
   v = caml_alloc(11, 0);
-  Store_field(v, 0, Val_long(stat->czxid));
-  Store_field(v, 1, Val_long(stat->mzxid));
-  Store_field(v, 2, Val_long(stat->ctime));
-  Store_field(v, 3, Val_long(stat->mtime));
-  Store_field(v, 4, Val_int(stat->version));
-  Store_field(v, 5, Val_int(stat->cversion));
-  Store_field(v, 6, Val_int(stat->aversion));
-  Store_field(v, 7, Val_long(stat->ephemeralOwner));
-  Store_field(v, 8, Val_int(stat->dataLength));
-  Store_field(v, 9, Val_int(stat->numChildren));
+  Store_field(v,  0, Val_long(stat->czxid));
+  Store_field(v,  1, Val_long(stat->mzxid));
+  Store_field(v,  2, Val_long(stat->ctime));
+  Store_field(v,  3, Val_long(stat->mtime));
+  Store_field(v,  4, Val_int(stat->version));
+  Store_field(v,  5, Val_int(stat->cversion));
+  Store_field(v,  6, Val_int(stat->aversion));
+  Store_field(v,  7, Val_long(stat->ephemeralOwner));
+  Store_field(v,  8, Val_int(stat->dataLength));
+  Store_field(v,  9, Val_int(stat->numChildren));
   Store_field(v, 10, Val_int(stat->pzxid));
 
   return v;
