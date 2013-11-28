@@ -174,7 +174,7 @@ zkocaml_enum_error_c2ml(enum ZOO_ERRORS error)
       break;
     }
   }
-  return index;
+  return Val_int(index);
 }
 
 static ZooLogLevel
@@ -195,7 +195,7 @@ zkocaml_enum_loglevel_c2ml(ZooLogLevel log_level)
       break;
     }
   }
-  return index;
+  return Val_int(index);
 }
 
 static int
@@ -472,6 +472,19 @@ zkocaml_parse_acls(value v, struct ACL_vector *acls)
 
   return 1;
 }
+
+static value
+zkocaml_build_client_id_struct(const clientid_t *cid)
+{
+  CAMLlocal1(v);
+
+  v = caml_alloc(2, 0);
+  Store_field(v, 0, Val_long(cid->client_id));
+  Store_field(v, 1, caml_copy_string(cid->passwd));
+
+  return v;
+}
+
 
 static value
 zkocaml_build_stat_struct(const struct Stat *stat)
@@ -797,14 +810,16 @@ zkocaml_init_native(value host,
 
   const char *local_host = String_val(host);
   int local_recv_timeout = Long_val(recv_timeout);
+  clientid_t *cid = NULL;
 
   zkocaml_watcher_context_t *ctx = (zkocaml_watcher_context_t *)
       malloc(sizeof(zkocaml_watcher_context_t));
   ctx->watcher_ctx = String_val(context);
   ctx->watcher_callback = watcher_fn;
 
+  cid = zkocaml_parse_clientid(clientid);
   zhandle_t *handle = zookeeper_init(local_host,
-          watcher_dispatch, local_recv_timeout, 0, ctx, 0);
+          watcher_dispatch, local_recv_timeout, cid, ctx, 0);
 
   zh = zkocaml_copy_zhandle(handle);
   CAMLreturn(zh);
@@ -843,6 +858,14 @@ CAMLprim value
 zkocaml_close(value zh)
 {
   CAMLparam1(zh);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = NULL;
+  zhandle = zkocaml_handle_struct_val(zh);
+  int rc = zookeeper_close(zhandle->handle);
+  result = Val_int(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -853,6 +876,14 @@ CAMLprim value
 zkocaml_client_id(value zh)
 {
   CAMLparam1(zh);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = NULL;
+  zhandle = zkocaml_handle_struct_val(zh);
+  const clientid_t *cid = zoo_client_id(zhandle->handle);
+  result = zkocaml_build_client_id_struct(cid);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -864,6 +895,14 @@ CAMLprim value
 zkocaml_recv_timeout(value zh)
 {
   CAMLparam1(zh);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = NULL;
+  zhandle = zkocaml_handle_struct_val(zh);
+  int recv_timeout = zoo_recv_timeout(zhandle->handle);
+  result = Val_int(recv_timeout);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -873,6 +912,14 @@ CAMLprim value
 zkocaml_get_context(value zh)
 {
   CAMLparam1(zh);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = NULL;
+  zhandle = zkocaml_handle_struct_val(zh);
+  const char *context = zoo_get_context(zhandle->handle);
+  result = caml_copy_string(context);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -881,7 +928,14 @@ zkocaml_get_context(value zh)
 CAMLprim value
 zkocaml_set_context(value zh, value context)
 {
-  CAMLparam1(zh);
+  CAMLparam2(zh, context);
+
+  zkocaml_handle_t *zhandle = NULL;
+  zhandle = zkocaml_handle_struct_val(zh);
+  char *local_context = String_val(context);
+  zoo_set_context(zhandle->handle, local_context);
+
+  CAMLreturn(Val_unit);
 }
 
 /**
