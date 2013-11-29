@@ -38,7 +38,7 @@ type zhandle
  **)
 type client_id = {client_id: int64; passwd: string}
 
-type acl = {perms: int32; scheme: string; id: string}
+type acl = {perms: int; scheme: string; id: string}
 type acls = acl array
 
 type strings = string array
@@ -48,13 +48,13 @@ type stat = {
   mzxid: int64;
   ctime: int64;
   mtime: int64;
-  version: int32;
-  cversion: int32;
-  aversion: int32;
+  version: int;
+  cversion: int;
+  aversion: int;
   ephemeral_owner: int64;
-  data_length: int32;
-  num_children: int32;
-  pzxid: int32
+  data_length: int;
+  num_children: int;
+  pzxid: int
 }
 
 type error =
@@ -388,9 +388,9 @@ let zoo_creator_all_acl = [creator_all_acl_acl_]
 
 *)
 
-external init : host:string -> watcher_fn:watcher_callback ->
-    recv_timeout:int -> clientid:client_id -> context:string ->
-    flags:int -> zhandle = "zkocaml_init_bytecode" "zkocaml_init_native"
+external init : string -> watcher_callback ->
+    int -> client_id -> string ->
+    int -> zhandle = "zkocaml_init_bytecode" "zkocaml_init_native"
 
 external close : zh:zhandle -> error = "zkocaml_close"
 
@@ -407,9 +407,13 @@ external set_watcher : zh:zhandle -> watcher_fn:watcher_callback
 
 external get_connected_host : zh:zhandle -> string = "zkocaml_get_connected_host"
 
-(* external zstate : zh:zhandle -> state = "zkocaml_state" *)
-external zstate : zh:zhandle -> int = "zkocaml_state"
+external zstate : zh:zhandle -> state = "zkocaml_state"
 
-external acreate : zh:zhandle -> path:string -> value:string
+(* external acreate : zh:zhandle -> path:string -> value:string
   -> acls:acl ->flags:create_flag -> completion:string_completion_callback
   -> data:string -> error = "zkocaml_acreate_bytecode" "zkocaml_acreate_native"
+*)
+
+external acreate : zhandle -> string -> string
+  -> acls -> create_flag -> string_completion_callback
+  -> string -> error = "zkocaml_acreate_bytecode" "zkocaml_acreate_native"

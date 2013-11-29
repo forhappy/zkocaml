@@ -107,11 +107,11 @@ static const ZOO_CREATE_FLAG_AUX ZOO_CREATE_FLAG_TABLE[] = {
 static void
 zkocaml_handle_struct_finalize(value ve)
 {
-  zkocaml_handle_t *zhandle = NULL;
-  zhandle = zkocaml_handle_struct_val(ve);
-  if (zoo_state(zhandle->handle) == ZOO_CONNECTED_STATE) {
-    zookeeper_close(zhandle->handle);
-  }
+//   zkocaml_handle_t *zhandle = NULL;
+//   zhandle = zkocaml_handle_struct_val(ve);
+//   if (zoo_state(zhandle->handle) == ZOO_CONNECTED_STATE) {
+//     zookeeper_close(zhandle->handle);
+//   }
 }
 
 static int
@@ -143,14 +143,15 @@ static value
 zkocaml_copy_zhandle(zhandle_t *zh)
 {
   CAMLparam0();
-  CAMLlocal1(handle);
 
   zkocaml_handle_t *zhandle = (zkocaml_handle_t *)
       malloc(sizeof(zkocaml_handle_t));
   zhandle->handle = zh;
 
-  handle = caml_alloc_custom(&zhandle_struct_ops,
+  value handle = caml_alloc_custom(&zhandle_struct_ops,
           sizeof(zkocaml_handle_t), 0, 1);
+
+  // zkocaml_handle_struct_val(handle) = zhandle;
   memcpy(Data_custom_val(handle), &zhandle, sizeof(zkocaml_handle_t));
 
   CAMLreturn(handle);
@@ -729,8 +730,10 @@ string_completion_dispatch(int rc,
 
   completion_callback = ctx->completion_callback;
   local_rc = zkocaml_enum_error_c2ml(rc);
-  local_val = caml_copy_string(val);
+  if (val != NULL) local_val = caml_copy_string(val);
   local_data = caml_copy_string(ctx->data);
+
+  printf("XXXXX string_completion_dispatch XXXXX: %d\n", rc);
 
   callback3(completion_callback, local_rc, local_val, local_data);
 }
@@ -1029,7 +1032,40 @@ zkocaml_acreate_native(value zh,
                        value completion,
                        value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, val, acl, flags);
+  CAMLxparam2(completion, data);
+  CAMLlocal1(result);
+  struct ACL_vector local_acl;
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  // zhandle_t *zhandle = (zhandle_t *)zh;
+  const char *local_path = String_val(path);
+  const char *local_val = String_val(val);
+  size_t local_val_len = strlen(local_val);
+  int r = zkocaml_parse_acls(acl, &local_acl);
+  if (r == 0) local_acl = ZOO_OPEN_ACL_UNSAFE;
+  local_acl = ZOO_OPEN_ACL_UNSAFE;
+  int local_flags = zkocaml_enum_create_flag_ml2c(flags);
+  zkocaml_completion_context_t *local_data = (zkocaml_completion_context_t *)
+      malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = String_val(data);
+  local_data->completion_callback = completion;
+
+  int rc = zoo_acreate(zhandle->handle, local_path, local_val,
+                       local_val_len, (const struct ACL_vector *)&local_acl,
+                       local_flags, string_completion_dispatch,
+                       local_data);
+
+  // XXX:remove this.
+  printf("XXXXX connection in acreate XXXXX: %d\n", zoo_state(zhandle->handle));
+
+  if (zoo_state(zhandle->handle) == ZOO_CONNECTED_STATE) {
+      printf("XXXXX Connected handle. XXXXX\n");
+  }
+
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 CAMLprim value
