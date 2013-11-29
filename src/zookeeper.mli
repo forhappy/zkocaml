@@ -1,9 +1,8 @@
 type zhandle
 type client_id = { client_id : int64; passwd : string; }
-type id = { scheme : string; id : string; }
-type acl = { perms : int32; id : id; }
-type acls = acl list
-type strings = string list
+type acl = { perms : int32; scheme : string; id : string; }
+type acls = acl array
+type strings = string array
 type stat = {
   czxid : int64;
   mzxid : int64;
@@ -71,7 +70,8 @@ type log_level =
 type watcher_callback = zhandle -> event -> state -> string -> string -> unit
 type void_completion_callback = error -> string -> unit
 type stat_completion_callback = error -> stat -> string -> unit
-type data_completion_callback = error -> string -> stat -> string -> unit
+type data_completion_callback =
+    error -> string -> int -> stat -> string -> unit
 type strings_completion_callback = error -> strings -> string -> unit
 type strings_stat_completion_callback =
     error -> strings -> stat -> string -> unit

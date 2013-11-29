@@ -443,11 +443,16 @@ zkocaml_parse_clientid(value v)
    *
    */
   clientid_t *cid = (clientid_t *) malloc(sizeof(clientid_t));
-  cid->client_id = Long_val(Field(v, 0));
+  memset(cid->passwd, 0, 16);
+
+  cid->client_id = Int64_val(Field(v, 0));
   const char *passwd = String_val(Field(v, 1));
   size_t passwd_len = strlen(passwd);
-  memset(cid->passwd, 0, 16);
-  memcpy(cid->passwd, passwd, (passwd_len < 15) ? passwd_len : 15);
+  if (cid->client_id == 0 && passwd_len == 0) {
+      return NULL;
+  } else {
+      memcpy(cid->passwd, passwd, (passwd_len < 15) ? passwd_len : 15);
+  }
 
   return cid;
 }
