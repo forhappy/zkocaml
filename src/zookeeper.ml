@@ -409,11 +409,9 @@ external get_connected_host : zh:zhandle -> string = "zkocaml_get_connected_host
 
 external zstate : zh:zhandle -> state = "zkocaml_state"
 
-(* external acreate : zh:zhandle -> path:string -> value:string
-  -> acls:acl ->flags:create_flag -> completion:string_completion_callback
-  -> data:string -> error = "zkocaml_acreate_bytecode" "zkocaml_acreate_native"
-*)
-
 external acreate : zhandle -> string -> string
   -> acls -> create_flag -> string_completion_callback
   -> string -> error = "zkocaml_acreate_bytecode" "zkocaml_acreate_native"
+
+external adelete: zhandle -> string -> int -> void_completion_callback
+  -> string -> error = "zkocaml_adelete"

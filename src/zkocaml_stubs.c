@@ -994,7 +994,7 @@ zkocaml_set_context(value zh, value context)
 CAMLprim value
 zkocaml_set_watcher(value zh, value watcher_fn)
 {
-  CAMLparam1(zh);
+  CAMLparam2(zh, watcher_fn);
 }
 
 /**
@@ -1076,41 +1076,26 @@ zkocaml_acreate_native(value zh,
   CAMLparam5(zh, path, val, acl, flags);
   CAMLxparam2(completion, data);
   CAMLlocal1(result);
+
   struct ACL_vector local_acl;
-
   zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
-  LOG_INFO(("ZKOCAML: zhandle->handle in zkocaml_acreate_native: %p",
-            (zhandle->handle)));
-
   const char *local_path = String_val(path);
   const char *local_val = String_val(val);
   size_t local_val_len = strlen(local_val);
   int r = zkocaml_parse_acls(acl, &local_acl);
-  if (r == 0) local_acl = ZOO_OPEN_ACL_UNSAFE;
-  local_acl = ZOO_OPEN_ACL_UNSAFE;
+  if (r == 0) {
+    local_acl = ZOO_OPEN_ACL_UNSAFE;
+  }
   int local_flags = zkocaml_enum_create_flag_ml2c(flags);
-  zkocaml_completion_context_t *local_data = (zkocaml_completion_context_t *)
-      malloc(sizeof(zkocaml_completion_context_t));
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
   local_data->data = strdup(String_val(data));
   local_data->completion_callback = completion;
-
-  LOG_INFO(("ZKOCAML: path in zkocaml_acreate_native: %s", local_path));
-  LOG_INFO(("ZKOCAML: value in zkocaml_acreate_native: %s", local_val));
-  LOG_INFO(("ZKOCAML: data in zkocaml_acreate_native: %s", local_data->data));
-
-  LOG_INFO(("ZKOCAML: zoo_state in zkocaml_acreate_native: %d",
-            zoo_state(zhandle->handle)));
-
-  if (zoo_state(zhandle->handle) != ZOO_CONNECTED_STATE) {
-    printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-    CAMLreturn(Val_unit);
-  }
 
   int rc = zoo_acreate(zhandle->handle, local_path, local_val,
                        local_val_len, (const struct ACL_vector *)&local_acl,
                        local_flags, string_completion_dispatch,
                        local_data);
-
   result = zkocaml_enum_error_c2ml(rc);
 
   CAMLreturn(result);
@@ -1158,7 +1143,25 @@ zkocaml_adelete(value zh,
                 value completion,
                 value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, version, completion, data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_version = Int_val(version);
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_adelete(zhandle->handle,
+                       local_path,
+                       local_version,
+                       void_completion_dispatch,
+                       local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**

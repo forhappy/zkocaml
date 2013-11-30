@@ -20,10 +20,9 @@ let connect host = init host watcher_fn 3600 {client_id = 0L; passwd=""} "hello 
 
 let acreate_node handle path value = acreate handle path value acl Zookeeper.ZOO_SEQUENCE string_completion "(*acreate*)"
 
-let handle = connect "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183" 
+let handle = connect "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183";;
 
-(* let _ = let handle = connect "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183"
- * in acreate_node handle "/example" "hello";; *)
+read_line();;
 
 let _ = acreate_node handle "/example" "hello";;
 
