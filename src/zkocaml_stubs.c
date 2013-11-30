@@ -1197,7 +1197,25 @@ zkocaml_aexists(value zh,
                 value completion,
                 value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watch, completion, data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_aexists(zhandle->handle,
+                       local_path,
+                       local_watch,
+                       stat_completion_dispatch,
+                       local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -1238,12 +1256,35 @@ zkocaml_aexists(value zh,
 CAMLprim value
 zkocaml_awexists_native(value zh,
                         value path,
-                        value watcher,
+                        value watcher_fn,
                         value watcher_ctx,
                         value completion,
                         value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, completion);
+  CAMLxparam1(data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  zkocaml_watcher_context_t *local_ctx = (zkocaml_watcher_context_t *)
+      malloc(sizeof(zkocaml_watcher_context_t));
+  local_ctx->watcher_ctx = String_val(watcher_ctx);
+  local_ctx->watcher_callback = watcher_fn;
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_awexists(zhandle->handle,
+                        local_path,
+                        watcher_dispatch,
+                        local_ctx,
+                        stat_completion_dispatch,
+                        local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 CAMLprim value
@@ -1285,7 +1326,25 @@ zkocaml_aget(value zh,
              value completion,
              value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watch, completion, data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_aget(zhandle->handle,
+                       local_path,
+                       local_watch,
+                       data_completion_dispatch,
+                       local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -1323,12 +1382,36 @@ zkocaml_aget(value zh,
 CAMLprim value
 zkocaml_awget_native(value zh,
                      value path,
-                     value watcher,
+                     value watcher_fn,
                      value watcher_ctx,
                      value completion,
                      value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, completion);
+  CAMLxparam1(data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  zkocaml_watcher_context_t *local_ctx = (zkocaml_watcher_context_t *)
+      malloc(sizeof(zkocaml_watcher_context_t));
+  local_ctx->watcher_ctx = String_val(watcher_ctx);
+  local_ctx->watcher_callback = watcher_fn;
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_awget(zhandle->handle,
+                        local_path,
+                        watcher_dispatch,
+                        local_ctx,
+                        data_completion_dispatch,
+                        local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
+
 }
 
 CAMLprim value

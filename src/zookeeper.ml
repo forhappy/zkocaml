@@ -415,3 +415,18 @@ external acreate : zhandle -> string -> string
 
 external adelete: zhandle -> string -> int -> void_completion_callback
   -> string -> error = "zkocaml_adelete"
+
+external aexists: zhandle -> string -> int -> stat_completion_callback
+  -> string -> error = "zkocaml_adelete"
+
+external awexists: zhandle -> string -> watcher_callback
+  -> string -> stat_completion_callback
+  -> string -> error = "zkocaml_adelete"
+
+external aget: zhandle -> string -> int
+  -> data_completion_callback
+  -> string -> error = "zkocaml_adelete"
+
+external awget: zhandle -> string -> watcher_callback
+  -> string -> data_completion_callback
+  -> string -> error = "zkocaml_adelete"
