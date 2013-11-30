@@ -591,3 +591,19 @@ external add_auth:
   -> string
   -> error = "zkocaml_add_auth"
 
+external set_debug_level:
+     log_level
+  -> unit = "zkocaml_set_debug_level"
+
+external set_log_stream:
+     string
+  -> unit = "zkocaml_set_log_stream"
+
+external is_unrecoverable:
+     zhandle
+  -> error = "zkocaml_is_unrecoverable"
+
+external deterministic_conn_order:
+     bool
+  -> unit = "zkocaml_deterministic_conn_order"
+

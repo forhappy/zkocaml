@@ -62,6 +62,8 @@
 #define zkocaml_table_len(v) \
   sizeof(v) / sizeof(v[0])
 
+static FILE *zkocaml_log_stream = NULL;
+
 static const enum ZOO_ERRORS ZOO_ERRORS_TABLE[] = {
   ZOK,
   ZSYSTEMERROR,
@@ -912,6 +914,7 @@ zkocaml_close(value zh)
   zkocaml_handle_t *zhandle = NULL;
   zhandle = zkocaml_handle_struct_val(zh);
   int rc = zookeeper_close(zhandle->handle);
+  if (zkocaml_log_stream == NULL) fclose(zkocaml_log_stream);
   result = Val_int(rc);
 
   CAMLreturn(result);
@@ -2001,6 +2004,13 @@ CAMLprim value
 zkocaml_is_unrecoverable(value zh)
 {
   CAMLparam1(zh);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  int rc = zoo_is_unrecoverable(zhandle->handle);
+  result = zkocaml_enum_event_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2010,6 +2020,24 @@ CAMLprim value
 zkocaml_set_debug_level(value log_level)
 {
   CAMLparam1(log_level);
+
+  ZooLogLevel level = zkocaml_enum_loglevel_ml2c(log_level);
+  switch(level) {
+  case ZOO_LOG_LEVEL_ERROR:
+    zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
+    break;
+  case ZOO_LOG_LEVEL_WARN:
+    zoo_set_debug_level(ZOO_LOG_LEVEL_WARN);
+    break;
+  case ZOO_LOG_LEVEL_INFO:
+    zoo_set_debug_level(ZOO_LOG_LEVEL_INFO);
+    break;
+  case ZOO_LOG_LEVEL_DEBUG:
+    zoo_set_debug_level(ZOO_LOG_LEVEL_DEBUG);
+    break;
+  }
+
+  CAMLreturn(Val_unit);
 }
 
 /**
@@ -2023,6 +2051,13 @@ CAMLprim value
 zkocaml_set_log_stream(value log_stream)
 {
   CAMLparam1(log_stream);
+
+  const char *stream_name = String_val(log_stream);
+  zkocaml_log_stream = fopen(stream_name, "w+");
+  if (zkocaml_log_stream == NULL) CAMLreturn(Val_unit);
+  zoo_set_log_stream(zkocaml_log_stream);
+
+  CAMLreturn(Val_unit);
 }
 
 /**
@@ -2040,6 +2075,11 @@ CAMLprim value
 zkocaml_deterministic_conn_order(value yes_or_no)
 {
   CAMLparam1(yes_or_no);
+
+  int decision = Bool_val(yes_or_no);
+  zoo_deterministic_conn_order(decision);
+
+  CAMLreturn(Val_unit);
 }
 
 /**
