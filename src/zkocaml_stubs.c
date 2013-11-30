@@ -2109,10 +2109,10 @@ zkocaml_deterministic_conn_order(value yes_or_no)
  * null-terminated. This parameter may be NULL if path_buffer_len = 0.
  *
  * @path_buffer_len Size of path buffer; if the path of the new
- *    node (including space for the null terminator) exceeds the buffer size,
- *    the path string will be truncated to fit.  The actual path of the
- *    new node in the server will not be affected by the truncation.
- *    The path string will always be null-terminated.
+ * node (including space for the null terminator) exceeds the buffer size,
+ * the path string will be truncated to fit.  The actual path of the
+ * new node in the server will not be affected by the truncation.
+ * The path string will always be null-terminated.
  *
  * @return one of the following codes are returned:
  *   ZOK operation completed successfully
@@ -2169,6 +2169,16 @@ CAMLprim value
 zkocaml_delete(value zh, value path, value version)
 {
   CAMLparam3(zh, path, version);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_version = Int_val(version);
+
+  int rc = zoo_delete(zhandle->handle, local_path, local_version);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2231,11 +2241,11 @@ zkocaml_exists(value zh, value path, value watch, value stat)
 CAMLprim value
 zkocaml_wexists(value zh,
                 value path,
-                value watcher,
+                value watcher_fn,
                 value watcher_ctx,
                 value stat)
 {
-  CAMLparam5(zh, path, watcher, watcher_ctx, stat);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, stat);
 }
 
 /**
@@ -2304,12 +2314,12 @@ zkocaml_get(value zh,
 CAMLprim value
 zkocaml_wget_native(value zh,
                     value path,
-                    value watcher,
+                    value watcher_fn,
                     value watcher_ctx,
                     value buffer,
                     value stat)
 {
-  CAMLparam5(zh, path, watcher, watcher_ctx, buffer);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, buffer);
 }
 
 CAMLprim value
@@ -2347,6 +2357,22 @@ CAMLprim value
 zkocaml_set(value zh, value path, value buffer, value version)
 {
   CAMLparam4(zh, path, buffer, version);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  const char *local_buffer = String_val(path);
+  size_t buffer_len = strlen(local_buffer);
+  int local_version = Int_val(version);
+
+  int rc = zoo_set(zhandle->handle,
+                   local_path,
+                   local_buffer,
+                   buffer_len,
+                   local_version);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2440,11 +2466,11 @@ zkocaml_get_children(value zh, value path, value watch, value strings)
 CAMLprim value
 zkocaml_wget_children(value zh,
                       value path,
-                      value watcher,
+                      value watcher_fn,
                       value watcher_ctx,
                       value strings)
 {
-  CAMLparam5(zh, path, watcher, watcher_ctx, strings);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, strings);
 }
 
 /**
@@ -2517,12 +2543,12 @@ zkocaml_get_children2(value zh,
 CAMLprim value
 zkocaml_wget_children2_native(value zh,
                               value path,
-                              value watcher,
+                              value watcher_fn,
                               value watcher_ctx,
                               value strings,
                               value stat)
 {
-  CAMLparam5(zh, path, watcher, watcher_ctx, strings);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, strings);
 }
 
 CAMLprim value
@@ -2584,5 +2610,24 @@ CAMLprim value
 zkocaml_set_acl(value zh, value path, value version, value acl)
 {
   CAMLparam4(zh, path, version, acl);
+  CAMLlocal1(result);
+
+
+  struct ACL_vector local_acl;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_version = Int_val(version);
+  int r = zkocaml_parse_acls(acl, &local_acl);
+  if (r == 0) {
+    local_acl = ZOO_OPEN_ACL_UNSAFE;
+  }
+
+  int rc = zoo_set_acl(zhandle->handle,
+                       local_path,
+                       local_version,
+                       (const struct ACL_vector *)&local_acl);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
