@@ -417,16 +417,20 @@ external adelete: zhandle -> string -> int -> void_completion_callback
   -> string -> error = "zkocaml_adelete"
 
 external aexists: zhandle -> string -> int -> stat_completion_callback
-  -> string -> error = "zkocaml_adelete"
+  -> string -> error = "zkocaml_aexists"
 
 external awexists: zhandle -> string -> watcher_callback
   -> string -> stat_completion_callback
-  -> string -> error = "zkocaml_adelete"
+  -> string -> error = "zkocaml_awexists_native" "zkocaml_awexists_bytecode"
 
 external aget: zhandle -> string -> int
   -> data_completion_callback
-  -> string -> error = "zkocaml_adelete"
+  -> string -> error = "zkocaml_aget"
 
 external awget: zhandle -> string -> watcher_callback
   -> string -> data_completion_callback
-  -> string -> error = "zkocaml_adelete"
+  -> string -> error = "zkocaml_awget_native" "zkocaml_awget_bytecode"
+
+external aset: zhandle -> string -> string
+  -> int -> stat_completion_callback
+  -> string -> error = "zkocaml_aset_native" "zkocaml_aset_bytecode"

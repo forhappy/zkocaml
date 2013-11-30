@@ -1460,7 +1460,30 @@ zkocaml_aset_native(value zh,
                     value completion,
                     value data)
 {
-  CAMLparam1(zh);
+  CAMLparam5(zh, path, buffer, version, completion);
+  CAMLxparam1(data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  const char *local_buffer = String_val(buffer);
+  size_t buffer_len = strlen(local_buffer);
+  int local_version = Int_val(version);
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_aset(zhandle->handle,
+                    local_path,
+                    local_buffer,
+                    buffer_len,
+                    local_version,
+                    stat_completion_dispatch,
+                    local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 CAMLprim value
