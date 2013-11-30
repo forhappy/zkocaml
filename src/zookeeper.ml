@@ -368,6 +368,36 @@ type strings_stat_completion_callback = error -> strings -> stat -> string -> un
  *)
 type string_completion_callback = error -> string -> string -> unit
 
+
+(**
+ * Signature of a completion function that returns an ACL.
+ *
+ * This method will be invoked at the end of a asynchronous call and also as
+ * a result of connection loss or timeout.
+ *
+ * @rc the error code of the call. Connection loss/timeout triggers
+ * the completion with one of the following error codes:
+ *   ZCONNECTIONLOSS -- lost connection to the server
+ *   ZOPERATIONTIMEOUT -- connection timed out
+ * Data related events trigger the completion with error codes listed the
+ * Exceptions section of the documentation of the function that initiated the
+ * call. (Zero indicates call was successful.)
+ *
+ * @acl a pointer to the structure containng the ACL of a node. If a non
+ * zero error code is returned, the content of strings is undefined. The
+ * programmer is NOT responsible for freeing acl.
+ *
+ * @stat a pointer to the stat information for the node involved in
+ * this function. If a non zero error code is returned, the content of
+ * stat is undefined. The programmer is NOT responsible for freeing stat.
+ *
+ * @param data the pointer that was passed by the caller when the function
+ * that this completion corresponds to was invoked. The programmer
+ * is responsible for any memory freeing associated with the data
+ * pointer.
+ *)
+type acl_completion_callback = error -> acls -> stat -> string -> unit
+
 (*
 
 (** This ID represents anyone. *)
@@ -525,4 +555,39 @@ external awget_children2:
   -> strings_stat_completion_callback
   -> string
   -> error = "zkocaml_awget_children2_native" "zkocaml_awget_children2_bytecode"
+
+external async:
+     zhandle
+  -> string
+  -> string_completion_callback
+  -> string
+  -> error = "zkocaml_async"
+
+external aget_acl:
+     zhandle
+  -> string
+  -> int
+  -> acls
+  -> acl_completion_callback
+  -> string
+  -> error = "zkocaml_aget_acl"
+
+external aset_acl:
+     zhandle
+  -> string
+  -> acl_completion_callback
+  -> string
+  -> error = "zkocaml_aset_acl_native" "zkocaml_aset_acl_bytecode"
+
+external zerror:
+     int
+  -> string = "zkocaml_zerror"
+
+external add_auth:
+     zhandle
+  -> string
+  -> string
+  -> void_completion_callback
+  -> string
+  -> error = "zkocaml_add_auth"
 
