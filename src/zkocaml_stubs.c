@@ -1411,7 +1411,6 @@ zkocaml_awget_native(value zh,
   result = zkocaml_enum_error_c2ml(rc);
 
   CAMLreturn(result);
-
 }
 
 CAMLprim value
@@ -1526,6 +1525,24 @@ zkocaml_aget_children(value zh,
                       value data)
 {
   CAMLparam5(zh, path, watch, completion, data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_aget_children(zhandle->handle,
+                       local_path,
+                       local_watch,
+                       strings_completion_dispatch,
+                       local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -1563,12 +1580,35 @@ zkocaml_aget_children(value zh,
 CAMLprim value
 zkocaml_awget_children_native(value zh,
                               value path,
-                              value watcher,
+                              value watcher_fn,
                               value watcher_ctx,
                               value completion,
                               value data)
 {
-  CAMLparam5(zh, path, watcher, watcher_ctx, completion);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, completion);
+  CAMLxparam1(data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  zkocaml_watcher_context_t *local_ctx = (zkocaml_watcher_context_t *)
+      malloc(sizeof(zkocaml_watcher_context_t));
+  local_ctx->watcher_ctx = String_val(watcher_ctx);
+  local_ctx->watcher_callback = watcher_fn;
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_awget_children(zhandle->handle,
+                        local_path,
+                        watcher_dispatch,
+                        local_ctx,
+                        strings_completion_dispatch,
+                        local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 CAMLprim value
@@ -1613,6 +1653,24 @@ zkocaml_aget_children2(value zh,
                        value data)
 {
   CAMLparam5(zh, path, watch, completion, data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_aget_children2(zhandle->handle,
+                       local_path,
+                       local_watch,
+                       strings_stat_completion_dispatch,
+                       local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -1652,12 +1710,35 @@ zkocaml_aget_children2(value zh,
 CAMLprim value
 zkocaml_awget_children2_native(value zh,
                                value path,
-                               value watcher,
+                               value watcher_fn,
                                value watcher_ctx,
                                value completion,
                                value data)
 {
-  CAMLparam5(zh, path, watcher, watcher_ctx, completion);
+  CAMLparam5(zh, path, watcher_fn, watcher_ctx, completion);
+  CAMLxparam1(data);
+  CAMLlocal1(result);
+
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  zkocaml_watcher_context_t *local_ctx = (zkocaml_watcher_context_t *)
+      malloc(sizeof(zkocaml_watcher_context_t));
+  local_ctx->watcher_ctx = String_val(watcher_ctx);
+  local_ctx->watcher_callback = watcher_fn;
+  zkocaml_completion_context_t *local_data =
+    (zkocaml_completion_context_t *)malloc(sizeof(zkocaml_completion_context_t));
+  local_data->data = strdup(String_val(data));
+  local_data->completion_callback = completion;
+
+  int rc = zoo_awget_children2(zhandle->handle,
+                        local_path,
+                        watcher_dispatch,
+                        local_ctx,
+                        strings_stat_completion_dispatch,
+                        local_data);
+  result = zkocaml_enum_error_c2ml(rc);
+
+  CAMLreturn(result);
 }
 
 CAMLprim value
