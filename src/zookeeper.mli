@@ -76,24 +76,79 @@ type strings_completion_callback = error -> strings -> string -> unit
 type strings_stat_completion_callback =
     error -> strings -> stat -> string -> unit
 type string_completion_callback = error -> string -> string -> unit
+type acl_completion_callback = error -> acls -> stat -> string -> unit
 external init :
   string -> watcher_callback -> int -> client_id -> string -> int -> zhandle
   = "zkocaml_init_bytecode" "zkocaml_init_native"
-external close : zh:zhandle -> error = "zkocaml_close"
-external client_id : zh:zhandle -> client_id = "zkocaml_client_id"
-external recv_timeout : zh:zhandle -> int = "zkocaml_recv_timeout"
-external get_context : zh:zhandle -> string = "zkocaml_get_context"
-external set_context : zh:zhandle -> context:string -> unit
-  = "zkocaml_set_context"
-external set_watcher :
-  zh:zhandle -> watcher_fn:watcher_callback -> watcher_callback
+external close : zhandle -> error = "zkocaml_close"
+external client_id : zhandle -> client_id = "zkocaml_client_id"
+external recv_timeout : zhandle -> int = "zkocaml_recv_timeout"
+external get_context : zhandle -> string = "zkocaml_get_context"
+external set_context : zhandle -> string -> unit = "zkocaml_set_context"
+external set_watcher : zhandle -> watcher_callback -> watcher_callback
   = "zkocaml_set_watcher"
-external get_connected_host : zh:zhandle -> string
+external get_connected_host : zhandle -> string
   = "zkocaml_get_connected_host"
-external zstate : zh:zhandle -> state = "zkocaml_state"
+external zstate : zhandle -> state = "zkocaml_state"
 external acreate :
   zhandle ->
   string ->
   string ->
   acls -> create_flag -> string_completion_callback -> string -> error
   = "zkocaml_acreate_bytecode" "zkocaml_acreate_native"
+external adelete :
+  zhandle -> string -> int -> void_completion_callback -> string -> error
+  = "zkocaml_adelete"
+external aexists :
+  zhandle -> string -> int -> stat_completion_callback -> string -> error
+  = "zkocaml_aexists"
+external awexists :
+  zhandle ->
+  string ->
+  watcher_callback -> string -> stat_completion_callback -> string -> error
+  = "zkocaml_awexists_native" "zkocaml_awexists_bytecode"
+external aget :
+  zhandle -> string -> int -> data_completion_callback -> string -> error
+  = "zkocaml_aget"
+external awget :
+  zhandle ->
+  string ->
+  watcher_callback -> string -> data_completion_callback -> string -> error
+  = "zkocaml_awget_native" "zkocaml_awget_bytecode"
+external aset :
+  zhandle ->
+  string -> string -> int -> stat_completion_callback -> string -> error
+  = "zkocaml_aset_native" "zkocaml_aset_bytecode"
+external aget_children :
+  zhandle -> string -> int -> strings_completion_callback -> string -> error
+  = "zkocaml_aget_children"
+external awget_children :
+  zhandle ->
+  string ->
+  watcher_callback ->
+  string -> strings_completion_callback -> string -> error
+  = "zkocaml_awget_children_native" "zkocaml_awget_children_bytecode"
+external aget_children2 :
+  zhandle ->
+  string -> int -> strings_stat_completion_callback -> string -> error
+  = "zkocaml_aget_children2"
+external awget_children2 :
+  zhandle ->
+  string ->
+  watcher_callback ->
+  string -> strings_stat_completion_callback -> string -> error
+  = "zkocaml_awget_children2_native" "zkocaml_awget_children2_bytecode"
+external async :
+  zhandle -> string -> string_completion_callback -> string -> error
+  = "zkocaml_async"
+external aget_acl :
+  zhandle ->
+  string -> int -> acls -> acl_completion_callback -> string -> error
+  = "zkocaml_aget_acl"
+external aset_acl :
+  zhandle -> string -> acl_completion_callback -> string -> error
+  = "zkocaml_aset_acl_native" "zkocaml_aset_acl_bytecode"
+external zerror : int -> string = "zkocaml_zerror"
+external add_auth :
+  zhandle -> string -> string -> void_completion_callback -> string -> error
+  = "zkocaml_add_auth"
