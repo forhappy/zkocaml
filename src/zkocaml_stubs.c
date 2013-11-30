@@ -20,17 +20,47 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <caml/mlvalues.h>
-#include <caml/memory.h>
 #include <caml/alloc.h>
-#include <caml/fail.h>
 #include <caml/callback.h>
 #include <caml/custom.h>
+#include <caml/fail.h>
+#include <caml/mlvalues.h>
+#include <caml/memory.h>
 #include <caml/signals.h>
+#include <caml/threads.h>
 
 #include <zookeeper/zookeeper.h>
+#include <zookeeper/zookeeper_log.h>
 
 #include "zkocaml_stubs.h"
+
+#if 1
+
+ #define zkocaml_enter_callback() \
+   do {\
+     caml_acquire_runtime_system();\
+   } while(0)
+
+ #define zkocaml_leave_callback() \
+   do {\
+     caml_release_runtime_system();\
+   } while(0)
+
+#else
+
+ #define zkocaml_enter_callback() \
+   int zkocaml_c_thread_registered = caml_c_thread_register(); \
+   if (zkocaml_c_thread_registered) caml_acquire_runtime_system()
+
+ #define zkocaml_leave_callback() \
+   do {\
+     if (zkocaml_c_thread_registered) { \
+       caml_release_runtime_system(); \
+       caml_c_thread_unregister(); \
+     } \
+   } while(0)
+
+#endif
 
 #define zkocaml_handle_struct_val(v) \
   (*(zkocaml_handle_t **)Data_custom_val(v))
@@ -103,15 +133,9 @@ static const ZOO_CREATE_FLAG_AUX ZOO_CREATE_FLAG_TABLE[] = {
     ZOO_SEQUENCE_AUX
 };
 
-
 static void
 zkocaml_handle_struct_finalize(value ve)
 {
-//   zkocaml_handle_t *zhandle = NULL;
-//   zhandle = zkocaml_handle_struct_val(ve);
-//   if (zoo_state(zhandle->handle) == ZOO_CONNECTED_STATE) {
-//     zookeeper_close(zhandle->handle);
-//   }
 }
 
 static int
@@ -132,9 +156,12 @@ zkocaml_handle_struct_hash(value v)
 
 static struct custom_operations zhandle_struct_ops = {
   "org.apache.zookeeper",
-  zkocaml_handle_struct_finalize,
-  zkocaml_handle_struct_compare,
-  zkocaml_handle_struct_hash,
+  // zkocaml_handle_struct_finalize,
+  // zkocaml_handle_struct_compare,
+  // zkocaml_handle_struct_hash,
+  custom_finalize_default,
+  custom_compare_default,
+  custom_hash_default,
   custom_serialize_default,
   custom_deserialize_default
 };
@@ -143,16 +170,17 @@ static value
 zkocaml_copy_zhandle(zhandle_t *zh)
 {
   CAMLparam0();
+  CAMLlocal1(handle);
 
   zkocaml_handle_t *zhandle = (zkocaml_handle_t *)
       malloc(sizeof(zkocaml_handle_t));
   zhandle->handle = zh;
 
-  value handle = caml_alloc_custom(&zhandle_struct_ops,
-          sizeof(zkocaml_handle_t), 0, 1);
+  handle = caml_alloc_custom(&zhandle_struct_ops,
+          sizeof(zkocaml_handle_t *), 0, 1);
 
-  // zkocaml_handle_struct_val(handle) = zhandle;
-  memcpy(Data_custom_val(handle), &zhandle, sizeof(zkocaml_handle_t));
+  zkocaml_handle_struct_val(handle) = zhandle;
+  // memcpy(Data_custom_val(handle), &zhandle, sizeof(zkocaml_handle_t));
 
   CAMLreturn(handle);
 }
@@ -228,7 +256,7 @@ zkocaml_enum_event_ml2c(value v)
     break;
   }
 
-  return Val_int(event);
+  return event;
 }
 
 static value
@@ -285,7 +313,7 @@ zkocaml_enum_state_ml2c(value v)
     break;
   }
 
-  return Val_int(state);
+  return state;
 }
 
 static value
@@ -345,7 +373,7 @@ zkocaml_enum_perm_ml2c(value v)
     break;
   }
 
-  return Val_int(perm);
+  return perm;
 }
 
 static value
@@ -395,7 +423,7 @@ zkocaml_enum_create_flag_ml2c(value v)
     break;
   }
 
-  return Val_int(create_flag);
+  return create_flag;
 }
 
 static value
@@ -553,6 +581,8 @@ watcher_dispatch(zhandle_t *zh,
                  const char *path,
                  void *watcher_ctx)
 {
+  zkocaml_enter_callback();
+
   CAMLlocal1(watcher_callback);
   CAMLlocal5(local_zh, local_type, local_state,
              local_path, local_watcher_ctx);
@@ -562,11 +592,19 @@ watcher_dispatch(zhandle_t *zh,
       (zkocaml_watcher_context_t* )(watcher_ctx);
   watcher_callback = ctx->watcher_callback;
 
+  LOG_INFO(("ZKOCAML: zhandle->handle in watcher_dispatch: %p", zh));
+
+  LOG_INFO(("ZKOCAML: zoo_state in watcher_dispatch: %d", zoo_state(zh)));
+
   local_zh = zkocaml_copy_zhandle(zh);
   local_type = zkocaml_enum_event_c2ml(type);
+  LOG_INFO(("ZKOCAML: type in watcher_dispatch: %d", type));
   local_state = zkocaml_enum_state_c2ml(state);
+  LOG_INFO(("ZKOCAML: state in watcher_dispatch: %d", state));
   local_path = caml_copy_string(path);
+  LOG_INFO(("ZKOCAML: path in watcher_dispatch: %s", path));
   local_watcher_ctx = caml_copy_string(ctx->watcher_ctx);
+  LOG_INFO(("ZKOCAML: watcher_ctx in watcher_dispatch: %s", (char *)(ctx->watcher_ctx)));
 
   Store_field(args, 0, local_zh);
   Store_field(args, 1, local_type);
@@ -575,6 +613,8 @@ watcher_dispatch(zhandle_t *zh,
   Store_field(args, 4, local_watcher_ctx);
 
   callbackN(watcher_callback, 5, args);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -589,6 +629,8 @@ watcher_dispatch(zhandle_t *zh,
 static void
 void_completion_dispatch(int rc, const void *data)
 {
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal2(local_rc, local_data);
 
@@ -600,6 +642,8 @@ void_completion_dispatch(int rc, const void *data)
   local_data = caml_copy_string(ctx->data);
 
   callback2(completion_callback, local_rc, local_data);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -611,6 +655,9 @@ stat_completion_dispatch(int rc,
                          const struct Stat *stat,
                          const void *data)
 {
+
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal3(local_rc, local_stat, local_data);
 
@@ -623,6 +670,8 @@ stat_completion_dispatch(int rc,
   local_data = caml_copy_string(ctx->data);
 
   callback3(completion_callback, local_rc, local_stat, local_data);
+
+  zkocaml_leave_callback();
 }
 /**
  * Called when an asynchronous call that returns a stat structure and
@@ -636,6 +685,9 @@ data_completion_dispatch(int rc,
                          const struct Stat *stat,
                          const void *data)
 {
+
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal5(local_rc, local_val, local_val_len, local_stat, local_data);
   CAMLlocalN(args, 5);
@@ -657,6 +709,8 @@ data_completion_dispatch(int rc,
   Store_field(args, 4, local_data);
 
   callbackN(completion_callback, 5, args);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -668,6 +722,8 @@ strings_completion_dispatch(int rc,
                             const struct String_vector *strings,
                             const void *data)
 {
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal3(local_rc, local_strings, local_data);
 
@@ -680,6 +736,8 @@ strings_completion_dispatch(int rc,
   local_data = caml_copy_string(ctx->data);
 
   callback3(completion_callback, local_rc, local_strings, local_data);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -692,6 +750,8 @@ strings_stat_completion_dispatch(int rc,
                                  const struct Stat *stat,
                                  const void *data)
 {
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal4(local_rc, local_strings, local_stat, local_data);
   CAMLlocalN(args, 4);
@@ -711,6 +771,8 @@ strings_stat_completion_dispatch(int rc,
   Store_field(args, 3, local_data);
 
   callbackN(completion_callback, 4, args);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -722,20 +784,27 @@ string_completion_dispatch(int rc,
                            const char *val,
                            const void *data)
 {
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal3(local_rc, local_val, local_data);
 
   zkocaml_completion_context_t *ctx =
     (zkocaml_completion_context_t *)data;
 
+  LOG_INFO(("ZKOCAML: rc in string_completion_dispatch: %d", rc));
+  LOG_INFO(("ZKOCAML: value in string_completion_dispatch: %s", val));
+  LOG_INFO(("ZKOCAML: data in string_completion_dispatch: %s", ctx->data));
+
   completion_callback = ctx->completion_callback;
   local_rc = zkocaml_enum_error_c2ml(rc);
   if (val != NULL) local_val = caml_copy_string(val);
   local_data = caml_copy_string(ctx->data);
 
-  printf("XXXXX string_completion_dispatch XXXXX: %d\n", rc);
 
   callback3(completion_callback, local_rc, local_val, local_data);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -748,6 +817,8 @@ acl_completion_dispatch(int rc,
                         struct Stat *stat,
                         const void *data)
 {
+  zkocaml_enter_callback();
+
   CAMLlocal1(completion_callback);
   CAMLlocal4(local_rc, local_acl, local_stat, local_data);
   CAMLlocalN(args, 4);
@@ -767,6 +838,8 @@ acl_completion_dispatch(int rc,
   Store_field(args, 3, local_data);
 
   callbackN(completion_callback, 4, args);
+
+  zkocaml_leave_callback();
 }
 
 /**
@@ -828,6 +901,10 @@ zkocaml_init_native(value host,
   cid = zkocaml_parse_clientid(clientid);
   zhandle_t *handle = zookeeper_init(local_host,
           watcher_dispatch, local_recv_timeout, cid, ctx, 0);
+
+  LOG_INFO(("ZKOCAML: zoo_state in zkocaml_init_native: %d", zoo_state(handle)));
+  LOG_INFO(("ZKOCAML: zhandle->handle in zkocaml_init_native: %p",
+            handle));
 
   zh = zkocaml_copy_zhandle(handle);
   CAMLreturn(zh);
@@ -1038,7 +1115,9 @@ zkocaml_acreate_native(value zh,
   struct ACL_vector local_acl;
 
   zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
-  // zhandle_t *zhandle = (zhandle_t *)zh;
+  LOG_INFO(("ZKOCAML: zhandle->handle in zkocaml_acreate_native: %p",
+            (zhandle->handle)));
+
   const char *local_path = String_val(path);
   const char *local_val = String_val(val);
   size_t local_val_len = strlen(local_val);
@@ -1048,20 +1127,25 @@ zkocaml_acreate_native(value zh,
   int local_flags = zkocaml_enum_create_flag_ml2c(flags);
   zkocaml_completion_context_t *local_data = (zkocaml_completion_context_t *)
       malloc(sizeof(zkocaml_completion_context_t));
-  local_data->data = String_val(data);
+  local_data->data = strdup(String_val(data));
   local_data->completion_callback = completion;
+
+  LOG_INFO(("ZKOCAML: path in zkocaml_acreate_native: %s", local_path));
+  LOG_INFO(("ZKOCAML: value in zkocaml_acreate_native: %s", local_val));
+  LOG_INFO(("ZKOCAML: data in zkocaml_acreate_native: %s", local_data->data));
+
+  LOG_INFO(("ZKOCAML: zoo_state in zkocaml_acreate_native: %d",
+            zoo_state(zhandle->handle)));
+
+  if (zoo_state(zhandle->handle) != ZOO_CONNECTED_STATE) {
+    printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+    CAMLreturn(Val_unit);
+  }
 
   int rc = zoo_acreate(zhandle->handle, local_path, local_val,
                        local_val_len, (const struct ACL_vector *)&local_acl,
                        local_flags, string_completion_dispatch,
                        local_data);
-
-  // XXX:remove this.
-  printf("XXXXX connection in acreate XXXXX: %d\n", zoo_state(zhandle->handle));
-
-  if (zoo_state(zhandle->handle) == ZOO_CONNECTED_STATE) {
-      printf("XXXXX Connected handle. XXXXX\n");
-  }
 
   result = zkocaml_enum_error_c2ml(rc);
 
