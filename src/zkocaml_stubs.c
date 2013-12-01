@@ -2568,9 +2568,28 @@ zkocaml_set2(value zh, value path, value buffer, value version)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_get_children(value zh, value path, value watch, value strings)
+zkocaml_get_children(value zh, value path, value watch)
 {
-  CAMLparam4(zh, path, watch, strings);
+  CAMLparam3(zh, path, watch);
+  CAMLlocal3(result, error, strs);
+
+  struct String_vector local_strings;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+
+  int rc = zoo_get_children(zhandle->handle,
+                      local_path,
+                      local_watch,
+                      (struct String_vector *)&local_strings);
+
+  error = zkocaml_enum_error_c2ml(rc);
+  strs = zkocaml_build_strings_struct(&local_strings);
+  result = caml_alloc(2, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, strs);
+
+  CAMLreturn(result);
 }
 
 /**
