@@ -607,3 +607,18 @@ external deterministic_conn_order:
      bool
   -> unit = "zkocaml_deterministic_conn_order"
 
+external create:
+     zhandle
+  -> string
+  -> string
+  -> acls
+  -> create_flag
+  -> error * string = "zkocaml_create"
+
+external delete:
+     zhandle
+  -> string
+  -> int
+  -> error = "zkocaml_delete"
+
+

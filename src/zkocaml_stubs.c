@@ -62,6 +62,8 @@
 #define zkocaml_table_len(v) \
   sizeof(v) / sizeof(v[0])
 
+#define ZKOCAML_MAX_PATH_BUFFER_SIZE 4096
+
 static FILE *zkocaml_log_stream = NULL;
 
 static const enum ZOO_ERRORS ZOO_ERRORS_TABLE[] = {
@@ -504,7 +506,7 @@ zkocaml_build_client_id_struct(const clientid_t *cid)
   CAMLlocal1(v);
 
   v = caml_alloc(2, 0);
-  Store_field(v, 0, Val_long(cid->client_id));
+  Store_field(v, 0, caml_copy_int64(cid->client_id));
   Store_field(v, 1, caml_copy_string(cid->passwd));
 
   return v;
@@ -517,14 +519,14 @@ zkocaml_build_stat_struct(const struct Stat *stat)
   CAMLlocal1(v);
 
   v = caml_alloc(11, 0);
-  Store_field(v,  0, Val_long(stat->czxid));
-  Store_field(v,  1, Val_long(stat->mzxid));
-  Store_field(v,  2, Val_long(stat->ctime));
-  Store_field(v,  3, Val_long(stat->mtime));
+  Store_field(v,  0, caml_copy_int64(stat->czxid));
+  Store_field(v,  1, caml_copy_int64(stat->mzxid));
+  Store_field(v,  2, caml_copy_int64(stat->ctime));
+  Store_field(v,  3, caml_copy_int64(stat->mtime));
   Store_field(v,  4, Val_int(stat->version));
   Store_field(v,  5, Val_int(stat->cversion));
   Store_field(v,  6, Val_int(stat->aversion));
-  Store_field(v,  7, Val_long(stat->ephemeralOwner));
+  Store_field(v,  7, caml_copy_int64(stat->ephemeralOwner));
   Store_field(v,  8, Val_int(stat->dataLength));
   Store_field(v,  9, Val_int(stat->numChildren));
   Store_field(v, 10, Val_int(stat->pzxid));
@@ -636,7 +638,6 @@ stat_completion_dispatch(int rc,
                          const struct Stat *stat,
                          const void *data)
 {
-
   zkocaml_enter_callback();
 
   CAMLlocal1(completion_callback);
@@ -665,7 +666,6 @@ data_completion_dispatch(int rc,
                          const struct Stat *stat,
                          const void *data)
 {
-
   zkocaml_enter_callback();
 
   CAMLlocal1(completion_callback);
@@ -2125,22 +2125,45 @@ zkocaml_deterministic_conn_order(value yes_or_no)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_create_native(value zh,
+zkocaml_create(value zh,
                       value path,
                       value val,
                       value acl,
-                      value flags,
-                      value path_buffer,
-                      value path_buffer_len)
+                      value flags)
 {
   CAMLparam5(zh, path, val, acl, flags);
-}
+  CAMLlocal3(result, error, buffer);
 
-CAMLprim value
-zkocaml_create_bytecode(value *argv, int argn)
-{
-  return zkocaml_create_native(argv[0], argv[1], argv[2],
-                               argv[3], argv[4], argv[5], argv[6]);
+  struct ACL_vector local_acl;
+  char *path_buffer = (char *)malloc(
+                      sizeof(char) * ZKOCAML_MAX_PATH_BUFFER_SIZE);
+  memset(path_buffer, 0, ZKOCAML_MAX_PATH_BUFFER_SIZE);
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  const char *local_val = String_val(val);
+  int r = zkocaml_parse_acls(acl, &local_acl);
+  if (r == 0) {
+    local_acl = ZOO_OPEN_ACL_UNSAFE;
+  }
+  int local_flags = zkocaml_enum_create_flag_ml2c(flags);
+
+  int rc = zoo_create(zhandle->handle,
+                      local_path,
+                      local_val,
+                      strlen(local_val),
+                      (const struct ACL_vector *)&local_acl,
+                      local_flags,
+                      path_buffer,
+                      ZKOCAML_MAX_PATH_BUFFER_SIZE
+                      );
+  error = zkocaml_enum_error_c2ml(rc);
+  buffer = caml_copy_string(path_buffer);
+  result = caml_alloc(2, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, buffer);
+  free(path_buffer);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2204,9 +2227,28 @@ zkocaml_delete(value zh, value path, value version)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_exists(value zh, value path, value watch, value stat)
+zkocaml_exists(value zh, value path, value watch)
 {
-  CAMLparam4(zh, path, watch, stat);
+  CAMLparam3(zh, path, watch);
+  CAMLlocal3(result, error, stat);
+
+  struct Stat local_stat;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+
+  int rc = zoo_exists(zhandle->handle,
+                          local_path,
+                          local_watch,
+                          (struct Stat *)&local_stat);
+
+  error = zkocaml_enum_error_c2ml(rc);
+  stat = zkocaml_build_stat_struct(&local_stat);
+  result = caml_alloc(2, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, stat);
+
+  CAMLreturn(result);
 }
 
 /**
