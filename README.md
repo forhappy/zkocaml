@@ -10,6 +10,7 @@ ZkOCaml is the first(as far as I know) Ocaml binding for Apache Zookeeper. If yo
 
 ZkOCaml provides a complete API binding of Ocaml for apache zookeeper(hereinafter referred to as `zookeeper`), including synchronous and asynchronous interface as well as some useful auxiliary APIs. That is, you may create/delete/get/update(CRUD) a zookeeper node(ZNode) in Ocaml language synchronously and/or asynchronously without any pains.
 
+
 # How to build ZkOCaml #
 ## Prepare to build ZkOCaml ##
 First of all, you have to get ZkOCaml source code from github:
@@ -18,6 +19,7 @@ First of all, you have to get ZkOCaml source code from github:
 
 ## Dependencies ##
 ZkOCaml has no other dependencies except for zookeeper c API implementation, which usually resides in `zookeeper-X.Y.Z/src/c`, hence you need to install zookeeper c API at first.
+
 
 # Install ZkOCaml #
 
@@ -29,12 +31,60 @@ If you want to install ZkOCaml into your system after you have compiled ZkOCaml,
 
     ZkOCaml$ make install
 
+
 # Getting started in 5 minutes #
 ## Examples ##
+### How to connect to zookeeper service ###
+
+    open Zookeeper
+    
+    let watcher_fn zhandle event_type conn_state path watcher_ctx =
+      if event_type = Zookeeper.ZOO_SESSION_EVENT then
+        if conn_state = Zookeeper.ZOO_CONNECTED_STATE then
+          print_string "Connected to zookeeper service successfully.\n"
+        else if conn_state = Zookeeper.ZOO_EXPIRED_SESSION_STATE then
+          print_string "Zookeeper session expired\n"
+    
+    let zh = init "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183" watcher_fn 3600 {client_id = 0L; passwd=""} "hello world" 0;;
+    
+    read_line();;
+
+### How to create a node asynchronously ###
+
+    open Zookeeper
+    
+    let acl = [|{perms = 0x1f; scheme = "auth"; id = ""}|]
+    let create_flag = Zookeeper.ZOO_SEQUENCE
+    
+    let watcher_fn zhandle event_type conn_state path watcher_ctx =
+      if event_type = Zookeeper.ZOO_SESSION_EVENT then
+        if conn_state = Zookeeper.ZOO_CONNECTED_STATE then
+          print_string "Connected to zookeeper service successfully.\n"
+        else if conn_state = Zookeeper.ZOO_EXPIRED_SESSION_STATE then
+          print_string "Zookeeper session expired\n"
+    
+    let string_completion rc value data =
+      if rc = Zookeeper.ZOK then
+        print_string ("Create node Ok with returned value: " ^ value ^ "\n")
+      else
+        print_string "Failed to create node.\n"
+    
+    let connect host = init host watcher_fn 3600 {client_id = 0L; passwd=""} "hello world" 0
+    
+    let acreate_node handle path value = acreate handle path value acl Zookeeper.ZOO_SEQUENCE string_completion "(*acreate*)"
+    
+    let handle = connect "127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183";;
+    
+    read_line();;
+    
+    let _ = acreate_node handle "/example" "hello";;
+    
+    read_line();;
 
 
 # API specification #
-See docs/* for more details about ZkOCaml's API specification.
+See docs/* and examples/* for more details about ZkOCaml's API specification.
+
 
 # License #
 Licensed to the Apache Software Foundation (ASF) under one
