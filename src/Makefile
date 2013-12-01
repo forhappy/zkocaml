@@ -1,7 +1,7 @@
 # Change this to match your zookeeper installation.
 ZOOKEEPER_LIB=-lzookeeper_mt
 ZOOKEEPER_LIBDIR=/usr/local/lib
-ZOOKEEPER_INCDIR=/usr/local/include /usr/local/include/zookeeper
+ZOOKEEPER_INCDIR=/usr/local/include
 
 NAME=zookeeper
 OBJECTS=zookeeper.cmo
