@@ -621,4 +621,16 @@ external delete:
   -> int
   -> error = "zkocaml_delete"
 
+external exists:
+     zhandle
+  -> string
+  -> int
+  -> error * stat = "zkocaml_exists"
+
+external wexists:
+     zhandle
+  -> string
+  -> watcher_callback
+  -> string
+  -> error * stat = "zkocaml_wexists"
 
