@@ -2851,7 +2851,6 @@ zkocaml_set_acl(value zh, value path, value version, value acl)
   CAMLparam4(zh, path, version, acl);
   CAMLlocal1(result);
 
-
   struct ACL_vector local_acl;
   zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
   const char *local_path = String_val(path);
