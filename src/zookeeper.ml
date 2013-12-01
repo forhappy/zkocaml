@@ -634,3 +634,67 @@ external wexists:
   -> string
   -> error * stat = "zkocaml_wexists"
 
+external get:
+     zhandle
+  -> string
+  -> int
+  -> error * string * stat = "zkocaml_get"
+
+external wget:
+     zhandle
+  -> string
+  -> watcher_callback
+  -> string
+  -> error * string * stat = "zkocaml_wget"
+
+external set:
+     zhandle
+  -> string
+  -> string
+  -> int
+  -> error = "zkocaml_set"
+
+external set2:
+     zhandle
+  -> string
+  -> string
+  -> int
+  -> error * stat = "zkocaml_set2"
+
+external get_children:
+     zhandle
+  -> string
+  -> int
+  -> error * strings = "zkocaml_get_children"
+
+external wget_children:
+     zhandle
+  -> string
+  -> watcher_callback
+  -> string
+  -> error * strings = "zkocaml_wget_children"
+
+external get_children2:
+     zhandle
+  -> string
+  -> int
+  -> error * strings * stat = "zkocaml_get_children2"
+
+external wget_children2:
+     zhandle
+  -> string
+  -> watcher_callback
+  -> string
+  -> error * strings * stat = "zkocaml_wget_children2"
+
+external get_acl:
+     zhandle
+  -> string
+  -> error * acls * stat = "zkocaml_get_acl"
+
+external set_acl:
+     zhandle
+  -> string
+  -> int
+  -> acls
+  -> error = "zkocaml_set_acl"

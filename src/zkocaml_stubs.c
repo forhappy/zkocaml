@@ -30,7 +30,6 @@
 #include <caml/threads.h>
 
 #include <zookeeper/zookeeper.h>
-#include <zookeeper/zookeeper_log.h>
 
 #include "zkocaml_stubs.h"
 
@@ -315,7 +314,7 @@ zkocaml_enum_state_c2ml(int state)
   CAMLlocal1(v);
 
   int i = 0, index = 0;
-  ZOO_STATE_AUX state_aux;
+  ZOO_STATE_AUX state_aux = ZOO_EXPIRED_SESSION_STATE_AUX;
 
   if (state == ZOO_EXPIRED_SESSION_STATE) {
     state_aux = ZOO_EXPIRED_SESSION_STATE_AUX;
@@ -998,6 +997,8 @@ CAMLprim value
 zkocaml_set_watcher(value zh, value watcher_callback)
 {
   CAMLparam2(zh, watcher_callback);
+  // TODO: implement this later.
+  CAMLreturn(Val_unit);
 }
 
 /**
@@ -1010,6 +1011,8 @@ CAMLprim value
 zkocaml_get_connected_host(value zh)
 {
   CAMLparam1(zh);
+  // TODO: implement this later.
+  CAMLreturn(Val_unit);
 }
 
 /**
@@ -2007,7 +2010,7 @@ zkocaml_is_unrecoverable(value zh)
   CAMLlocal1(result);
 
   zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
-  int rc = zoo_is_unrecoverable(zhandle->handle);
+  int rc = is_unrecoverable(zhandle->handle);
   result = zkocaml_enum_event_c2ml(rc);
 
   CAMLreturn(result);
