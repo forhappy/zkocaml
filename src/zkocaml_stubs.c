@@ -2539,9 +2539,9 @@ zkocaml_set2(value zh, value path, value buffer, value version)
 
   error = zkocaml_enum_error_c2ml(rc);
   stat = zkocaml_build_stat_struct(&local_stat);
-  result = caml_alloc(3, 0);
+  result = caml_alloc(2, 0);
   Store_field(result, 0, error);
-  Store_field(result, 2, stat);
+  Store_field(result, 1, stat);
 
   CAMLreturn(result);
 }
@@ -2624,10 +2624,32 @@ CAMLprim value
 zkocaml_wget_children(value zh,
                       value path,
                       value watcher_callback,
-                      value watcher_ctx,
-                      value strings)
+                      value watcher_ctx)
 {
-  CAMLparam5(zh, path, watcher_callback, watcher_ctx, strings);
+  CAMLparam4(zh, path, watcher_callback, watcher_ctx);
+  CAMLlocal3(result, error, strs);
+
+  struct String_vector local_strings;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  zkocaml_watcher_context_t *local_ctx = (zkocaml_watcher_context_t *)
+      malloc(sizeof(zkocaml_watcher_context_t));
+  local_ctx->watcher_ctx = String_val(watcher_ctx);
+  local_ctx->watcher_callback = watcher_callback;
+
+  int rc = zoo_wget_children(zhandle->handle,
+                             local_path,
+                             watcher_dispatch,
+                             local_ctx,
+                             (struct String_vector *)&local_strings);
+
+  error = zkocaml_enum_error_c2ml(rc);
+  strs = zkocaml_build_strings_struct(&local_strings);
+  result = caml_alloc(2, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, strs);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2658,11 +2680,32 @@ zkocaml_wget_children(value zh,
 CAMLprim value
 zkocaml_get_children2(value zh,
                       value path,
-                      value watch,
-                      value strings,
-                      value stat)
+                      value watch)
 {
-  CAMLparam5(zh, path, watch, strings, stat);
+  CAMLparam3(zh, path, watch);
+  CAMLlocal4(result, error, strs, stat);
+
+  struct String_vector local_strings;
+  struct Stat local_stat;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+  int local_watch = Int_val(watch);
+
+  int rc = zoo_get_children2(zhandle->handle,
+                      local_path,
+                      local_watch,
+                      (struct String_vector *)&local_strings,
+                      (struct Stat *)&local_stat);
+
+  error = zkocaml_enum_error_c2ml(rc);
+  strs = zkocaml_build_strings_struct(&local_strings);
+  stat = zkocaml_build_stat_struct(&local_stat);
+  result = caml_alloc(3, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, strs);
+  Store_field(result, 2, stat);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2698,21 +2741,39 @@ zkocaml_get_children2(value zh,
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_wget_children2_native(value zh,
+zkocaml_wget_children2(value zh,
                               value path,
                               value watcher_callback,
-                              value watcher_ctx,
-                              value strings,
-                              value stat)
+                              value watcher_ctx)
 {
-  CAMLparam5(zh, path, watcher_callback, watcher_ctx, strings);
-}
+  CAMLparam4(zh, path, watcher_callback, watcher_ctx);
+  CAMLlocal4(result, error, strs, stat);
 
-CAMLprim value
-zkocaml_wget_children2_bytecode(value *argv, int argn)
-{
-  return zkocaml_wget_children2_native(argv[0], argv[1], argv[2],
-                                       argv[3], argv[4], argv[5]);
+  struct String_vector local_strings;
+  struct Stat local_stat;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  zkocaml_watcher_context_t *local_ctx = (zkocaml_watcher_context_t *)
+      malloc(sizeof(zkocaml_watcher_context_t));
+  local_ctx->watcher_ctx = String_val(watcher_ctx);
+  local_ctx->watcher_callback = watcher_callback;
+  const char *local_path = String_val(path);
+
+  int rc = zoo_wget_children2(zhandle->handle,
+                      local_path,
+                      watcher_dispatch,
+                      local_ctx,
+                      (struct String_vector *)&local_strings,
+                      (struct Stat *)&local_stat);
+
+  error = zkocaml_enum_error_c2ml(rc);
+  strs = zkocaml_build_strings_struct(&local_strings);
+  stat = zkocaml_build_stat_struct(&local_stat);
+  result = caml_alloc(3, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, strs);
+  Store_field(result, 2, stat);
+
+  CAMLreturn(result);
 }
 
 /**
@@ -2736,9 +2797,30 @@ zkocaml_wget_children2_bytecode(value *argv, int argn)
  *   ZMARSHALLINGERROR - failed to marshall a request; possibly, out of memory
  */
 CAMLprim value
-zkocaml_get_acl(value zh, value path, value acl, value stat)
+zkocaml_get_acl(value zh, value path)
 {
-  CAMLparam4(zh, path, acl, stat);
+  CAMLparam2(zh, path);
+  CAMLlocal4(result, error, acls, stat);
+
+  struct ACL_vector local_acl;
+  struct Stat local_stat;
+  zkocaml_handle_t *zhandle = zkocaml_handle_struct_val(zh);
+  const char *local_path = String_val(path);
+
+  int rc = zoo_get_acl(zhandle->handle,
+                      local_path,
+                      (struct ACL_vector*)&local_acl,
+                      (struct Stat *)&local_stat);
+
+  error = zkocaml_enum_error_c2ml(rc);
+  acls = zkocaml_build_acls_struct(&local_acl);
+  stat = zkocaml_build_stat_struct(&local_stat);
+  result = caml_alloc(3, 0);
+  Store_field(result, 0, error);
+  Store_field(result, 1, acls);
+  Store_field(result, 2, stat);
+
+  CAMLreturn(result);
 }
 
 /**
