@@ -3,7 +3,7 @@ ZkOCaml
 
 Apache zookeeper client binding for OCAML programming language.
 
-# ZkOCaml: an one-minute introduction for beginners #
+# ZkOCaml: a one-minute introduction for beginners #
 ZkOCaml is the first(as far as I know) Ocaml binding for Apache Zookeeper. If you are wondering what is Apache Zookeeper, please visit the [zookeeper official website](http://zookeeper.apache.org/ "Apache ZooKeeper") to get more information about it, hereinafter is an one-sentence description that can inform of you what is apache zookeeper: 
 
 > [ZooKeeper](http://zookeeper.apache.org/ "Apache ZooKeeper") is a high-performance coordination service for distributed applications. It exposes common services - such as naming, configuration management, synchronization, and group services - in a simple interface so you don't have to write them from scratch. You can use it off-the-shelf to implement consensus, group management, leader election, and presence protocols.
